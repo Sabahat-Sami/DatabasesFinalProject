@@ -1,13 +1,13 @@
-from app import app, render_template, auth
+from flask import Blueprint, render_template, request, flash, jsonify, redirect, url_for
+from flask_login import login_required, current_user
 
-@app.route("/")
+
+
+views = Blueprint('views', __name__)
+
+
+@views.route('/', methods=['GET', 'POST'])
+# @login_required
 def home():
-    return "Hello World"
+    return render_template('home.html', user=current_user)
 
-@app.route("/login")
-def login():
-    return render_template("login.html")
-
-@app.route("/register")
-def register():
-    return render_template("register.html")
