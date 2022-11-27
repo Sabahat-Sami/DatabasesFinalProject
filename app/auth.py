@@ -1,9 +1,6 @@
 from flask import Blueprint, render_template, request, flash, redirect, url_for, session
-# from .models import User
 from werkzeug.security import generate_password_hash, check_password_hash
-from . import db, conn
-from .models import User
-from flask_login import login_user, login_required, logout_user, current_user
+from . import conn
 from datetime import datetime
 import re
 
@@ -29,22 +26,7 @@ def customerLogin():
             return redirect(url_for('views.home'))
         else:
             flash('Email does not exist.', category='error')
-    return render_template('customerLogin.html', user=current_user)
-    # if request.method == 'POST':
-    #     email = request.form.get('email')
-    #     password = request.form.get('password')
-
-    #     user = User.query.filter_by(email=email).first()
-    #     if user:
-    #         if check_password_hash(user.password, password):
-    #             flash('Logged in successfully!', category='success')
-    #             login_user(user, remember=True)
-    #             return redirect(url_for('views.home'))
-    #         else:
-    #             flash('Incorrect password, try again!', category='error')
-    #     else:
-    #         flash('Email does not exist.', category='error')
-    # return render_template('login.html', user=current_user)
+    return render_template('customerLogin.html')
 
 @auth.route('staff-login', methods=["GET", "POST"])
 def staffLogin():
@@ -64,7 +46,7 @@ def staffLogin():
             return redirect(url_for('views.home'))
         else:
             flash('Email does not exist.', category='error')
-    return render_template('staffLogin.html', user=current_user)
+    return render_template('staffLogin.html')
 
 @auth.route('/logout')
 def logout():
@@ -73,6 +55,9 @@ def logout():
     return redirect(url_for('views.home'))
 
 
+@auth.route('/customer-sign-up', methods=['GET', 'POST'])
+def customerSignUp():
+    return render_template('customerRegister.html')
 @auth.route('/staff-sign-up', methods=['GET', 'POST'])
 def staffSignUp():
     if request.method == 'POST':
@@ -88,7 +73,7 @@ def staffSignUp():
             date_of_birth = datetime.strptime(date_of_birth, '%Y-%m-%d %H:%M:%S')
         except:
             flash("date_of_birth must be in the format of YYYY-MM-DD", category="error")
-            return render_template('staffRegister.html', user=current_user)
+            return render_template('staffRegister.html')
         airline_name = request.form.get('airline_name').strip()
         cursor = conn.cursor()
         query = 'SELECT * FROM staff WHERE username = %s'
@@ -118,25 +103,6 @@ def staffSignUp():
             session['user'] = username
             session['customerOrStaff'] = 'staff'
             flash('Account Created!', category='success')
-        # user = User.query.filter_by(email=email).first()
-        # if user:
-        #     flash('Email already exists!', category='error')
-        # elif len(email) < 4:
-        #     flash('Email must be greater than 3 characters.', category='error')
-        # elif len(first_name) < 2:
-        #     flash('First name must be greater than 1 character.', category='error')
-        # elif password1 != password2:
-        #     flash('Passwords don\'t match.', category='error')
-        # elif len(password1) < 7:
-        #     flash('Password must be at least 7 characters.', category='error')
-        # else:
-        #     # add new user to database
-        #     new_user = User(email=email, first_name=first_name,
-        #                     password=generate_password_hash(password1, method='sha256'))
-        #     db.session.add(new_user)
-        #     db.session.commit()
-        #     login_user(new_user, remember=True)
-        #     flash('Account Created!', category='success')
             return redirect(url_for('views.home'))
 
-    return render_template('staffRegister.html', user=current_user)
+    return render_template('staffRegister.html')
