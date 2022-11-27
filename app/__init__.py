@@ -7,12 +7,21 @@ from flask_login import LoginManager
 
 db = SQLAlchemy()
 DB_NAME = "database.db"
-
+conn = pymysql.connect(
+            host="localhost", 
+            port=8889,
+            user="root",
+            password="root",
+            db="3083FinalProject",
+            charset="utf8mb4",
+            cursorclass=pymysql.cursors.DictCursor
+        )
 
 def create_app():
     app = Flask(__name__)
     app.config['SECRET_KEY'] = 'dasdasd 2ffeffdsf berggertf hgedgdfss'
     app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:///{DB_NAME}"
+
     db.init_app(app)
 
     from .views import views

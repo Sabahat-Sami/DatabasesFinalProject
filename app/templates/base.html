@@ -33,15 +33,15 @@
       <div class="collapse navbar-collapse" id="navbar">
 
         <div class="navbar-nav">
-          {% if user.is_authenticated %}
+          {% if session.user %}
           <a class="nav-item nav-link" id="home" href="/">Home</a>
           <a class="nav-item nav-link" id="logout" href="/logout">Logout</a>
           {% else %}
             <!--- CURRENTLY BOTH CUSTOMER AND EMPLOYEE LOGIN/SIGNUP LEADS TO SAME LOGIN/SIGNUP LINK --->
-          <a class="nav-item nav-link" id="login" href="/login">Customer Login</a>
-          <a class="nav-item nav-link" id="signUp" href="/sign-up">Customer Sign-Up</a>
-          <a class="nav-item nav-link" id="signUp" href="/login">Employee Login</a>
-          <a class="nav-item nav-link" id="signUp" href="/sign-up">Employee Sign-Up</a>
+          <a class="nav-item nav-link" id="login" href="/customer-login">Customer Login</a>
+          <a class="nav-item nav-link" id="signUp" href="/customer-sign-up">Customer Sign-Up</a>
+          <a class="nav-item nav-link" id="signUp" href="/staff-login">Employee Login</a>
+          <a class="nav-item nav-link" id="signUp" href="/staff-sign-up">Employee Sign-Up</a>
           {% endif %}
 
         </div>
