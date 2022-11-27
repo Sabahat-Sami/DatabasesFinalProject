@@ -1,4 +1,5 @@
-<!DOCTYPE html>
+{% extends "base.html" %} {% block title %}<title>Staff Register</title>{% endblock %} {% block content
+    %}
 <form method="POST" id="registerForm">
     <input type="text" name="username" placeholder="username" required/>
     </br> 
@@ -15,3 +16,4 @@
     <input type="submit" value = Register />
 </form>
 
+{% endblock %}

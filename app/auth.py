@@ -24,7 +24,7 @@ def customerLogin():
         cursor.close()
         if(data):
             flash('Logged in successfully!', category='success')
-            session['email'] = email
+            session['user'] = email
             session['customerOrStaff'] = 'customer'
             return redirect(url_for('views.home'))
         else:
@@ -52,7 +52,7 @@ def staffLogin():
         username = request.form.get('username')
         password = request.form.get('password')
         cursor = conn.cursor()
-        query = 'SELECT * FROM staff WHERE username = %s and user_password = %s'
+        query = 'SELECT * FROM staff WHERE username = %s and staff_password = %s'
         print(query)
         cursor.execute(query, (username, password))
         data = cursor.fetchone()
@@ -70,28 +70,33 @@ def staffLogin():
 def logout():
     session['user'] = None
     session['customerOrStaff'] = None
-    return redirect(url_for('auth.login'))
+    return redirect(url_for('views.home'))
 
 
 @auth.route('/staff-sign-up', methods=['GET', 'POST'])
 def staffSignUp():
     if request.method == 'POST':
-        username = request.form.get('username')
-        first_name = request.form.get('first_name')
-        last_name = request.form.get('last_name')
-        password = request.form.get('password')
-        date_of_birth = request.form.get('date_of_birth')
+        username = request.form.get('username').strip()
+        first_name = request.form.get('first_name').strip()
+        last_name = request.form.get('last_name').strip()
+        password = request.form.get('password').strip()
+        date_of_birth = request.form.get('date_of_birth').strip()
         match = re.search(date_of_birth_regex, date_of_birth)
-        print("hello")
-        if match:
-            date_of_birth = date_of_birth.strip() + " 00:00:00"
-            date_of_birth = datetime.strptime(date_of_birth, '%y-%m-%d %H:%M:%S')
-        airline_name = request.form.get('airline_name')
+        print(date_of_birth)
+        date_of_birth = date_of_birth.strip() + " 00:00:00"
+        try:
+            date_of_birth = datetime.strptime(date_of_birth, '%Y-%m-%d %H:%M:%S')
+        except:
+            flash("date_of_birth must be in the format of YYYY-MM-DD", category="error")
+            return render_template('staffRegister.html', user=current_user)
+        airline_name = request.form.get('airline_name').strip()
         cursor = conn.cursor()
         query = 'SELECT * FROM staff WHERE username = %s'
         cursor.execute(query, (username))
         data = cursor.fetchone()
-        cursor.close()
+        query = 'SELECT * FROM airlines WHERE name = %s'
+        cursor.execute(query, (airline_name))
+        airline = cursor.fetchone()
         if(data):
             flash('Username already in use!', category='error')
         elif(len(first_name) < 2):
@@ -100,11 +105,12 @@ def staffSignUp():
             flash('Last name must be greater than 1 character.', category='error')
         elif(len(password) < 7):
             flash('Password must be at least 7 characters.', category='error')
-        elif(not match):
-            flash('Please enter a valid date of birth in the year-month-day format!', category='error')
-        elif(len(airline_name) < 2):
-            flash('Pleae enter a valid airline name!', category='error')
+        # elif(not match):
+        #     flash('Please enter a valid date of birth in the year-month-day format!', category='error')
+        elif(len(airline_name) < 2 or not airline):
+            flash('Pleae enter a valid airline!', category='error')
         else:
+            print("hello")
             cursor = conn.cursor()
             query = 'INSERT INTO `staff` (`username`, `staff_password`, `first_name`, `last_name`, `date_of_birth`, `airline_name`) VALUES (%s, %s, %s, %s, %s, %s)'
             cursor.execute(query, (username, password, first_name, last_name, date_of_birth, airline_name))
