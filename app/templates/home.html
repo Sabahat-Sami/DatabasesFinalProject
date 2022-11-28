@@ -1,12 +1,49 @@
 {% extends "base.html" %} {% block title %}<title>Home</title>{% endblock %} {% block content
 %}
+    <br>
 <h1 align="center">WELCOME :)</h1>
-
-<form method="POST">
-  <textarea name="RANDOM POST FORM BUTTON" id="PLACEHOLDER" class="form-control"></textarea>
-  <br />
-  <div align="center">
-    <button type="submit" class="btn btn-primary">Add Note</button>
-  </div>
-</form>
+{% if search == None %}
+    <form method="POST">
+      <div class="form-group">
+        <label for=source>Source City/Airport Name</label>
+        <input
+          type="text"
+          class="form-control"
+          id="email"
+          name="email"
+    {#      placeholder="Enter email"#}
+        />
+      </div>
+      <div class="form-group">
+        <label for=destination>Destination City/Airport Name</label>
+        <input
+          type="text"
+          class="form-control"
+          id="destination"
+          name="destination"
+    {#      placeholder="Enter password"#}
+        />
+      </div>
+        <div class="form-group">
+        <label for=date>Arrival/Departure Date</label>
+        <input
+          type="date"
+          class="form-control"
+          id="date"
+          name="date"
+          min="2022-11-27"
+          max="2025-12-31"
+    {#      placeholder="Enter email"#}
+        />
+      </div>
+      <br />
+      <button type="submit" class="btn btn-primary">Search</button>
+    </form>
+{% else %}
+    {% for e in search %}
+        <div>
+            {{e}}
+        </div>
+    {% endfor %}
+{% endif %}
 {% endblock %}
