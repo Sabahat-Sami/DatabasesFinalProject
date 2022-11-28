@@ -1,0 +1,33 @@
+{% extends "base.html" %} {% block title %}<title>Staff Register</title>{% endblock %} {% block content
+    %}
+<form method="POST" id="registerForm">
+    <input type="text" name="email" placeholder="email" required/>
+    </br> 
+    <input type="text" name="first_name" placeholder="first name" required/>
+    </br> 
+    <input type="text" name="last_name" placeholder="last name" required/>
+    </br> 
+    <input type="text" name="date_of_birth" placeholder="date of birth" required/>
+    </br> 
+    <input type="text" name="street" placeholder="street" required/>
+    </br> 
+    <input type="text" name="building_number" placeholder="building" required/>
+    </br> 
+    <input type="text" name="city" placeholder="city" required/>
+    </br> 
+    <input type="text" name="state" placeholder="state" required/>
+    </br> 
+    <input type="text" name="phone_number" placeholder="phone number" required/>
+    </br> 
+    <input type="text" name="passport_number" placeholder="passport number" required/>
+    </br> 
+    <input type="text" name="passport_expiration" placeholder="passport expiration" required/>
+    </br> 
+    <input type="text" name="passport_country" placeholder="passport country" required/>
+    </br> 
+    <input type="password" name="password" placeholder="password" required/>
+    </br> 
+    <input type="submit" value = Register />
+</form>
+
+{% endblock %}

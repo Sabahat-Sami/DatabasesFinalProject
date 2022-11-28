@@ -99,6 +99,7 @@ def staffSignUp():
             cursor = conn.cursor()
             query = 'INSERT INTO `staff` (`username`, `staff_password`, `first_name`, `last_name`, `date_of_birth`, `airline_name`) VALUES (%s, %s, %s, %s, %s, %s)'
             cursor.execute(query, (username, password, first_name, last_name, date_of_birth, airline_name))
+            conn.commit()
             cursor.close()
             session['user'] = username
             session['customerOrStaff'] = 'staff'
