@@ -5,6 +5,24 @@ from app import conn
 views = Blueprint('views', __name__)
 
 
+def executeSearchQuery(arrival, departure):
+    cursor = conn.cursor()
+    if arrival == "" and departure == "":
+        query = 'SELECT * FROM flights'
+        cursor.execute(query)
+    elif arrival != "" and departure == "":
+        query = 'SELECT * FROM flights WHERE arrival_airport=%s'
+        cursor.execute(query, (arrival))
+    elif arrival == "" and departure != "":
+        query = 'SELECT * FROM flights WHERE departure_airport=%s'
+        cursor.execute(query, (departure))
+    else:
+        query = 'SELECT * FROM flights WHERE arrival_airport=%s and departure_airport=%s'
+        cursor.execute(query,(arrival, departure))
+    data = cursor.fetchall()
+    cursor.close()
+    return data
+
 @views.route('/', methods=['GET', 'POST'])
 # @login_required
 def home():
@@ -14,12 +32,7 @@ def home():
         destination = request.form.get('destination')
         date = request.form.get('date')
 
-        cursor = conn.cursor()
-        query = 'SELECT * FROM flights WHERE name = %s'
-        cursor.execute(query, (source))
-        data = cursor.fetchall()
-        cursor.close()
-
+        data = executeSearchQuery(source, destination)
         if not data:
             flash("No flights found!", category='error')
         return render_template('home.html', user=session, data=data)
