@@ -1,16 +1,16 @@
 {% extends "base.html" %} {% block title %}<title>Home</title>{% endblock %} {% block content
 %}
     <br>
-<h1 align="center">WELCOME :)</h1>
-{% if search == None %}
+{% if data == None %}
+    <h1 align="center">WELCOME :)</h1>
     <form method="POST">
       <div class="form-group">
         <label for=source>Source City/Airport Name</label>
         <input
           type="text"
           class="form-control"
-          id="email"
-          name="email"
+          id="source"
+          name="source"
     {#      placeholder="Enter email"#}
         />
       </div>
@@ -40,7 +40,7 @@
       <button type="submit" class="btn btn-primary">Search</button>
     </form>
 {% else %}
-    {% for e in search %}
+    {% for e in data %}
         <div>
             {{e}}
         </div>

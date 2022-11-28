@@ -34,10 +34,11 @@
 
         <div class="navbar-nav">
           {% if session.user %}
-          <a class="nav-item nav-link" id="home" href="/">Home</a>
-          <a class="nav-item nav-link" id="logout" href="/logout">Logout</a>
+              <a class="nav-item nav-link" id="home" href="/">Home</a>
+              <a class="nav-item nav-link" id="home" href="/view_flights">View Flights</a>
+              <a class="nav-item nav-link" id="home" href="/create_new_flight">Create Flight</a>
+              <a class="nav-item nav-link" id="logout" href="/logout">Logout</a>
           {% else %}
-            <!--- CURRENTLY BOTH CUSTOMER AND EMPLOYEE LOGIN/SIGNUP LEADS TO SAME LOGIN/SIGNUP LINK --->
           <a class="nav-item nav-link" id="login" href="/customer-login">Customer Login</a>
           <a class="nav-item nav-link" id="signUp" href="/customer-sign-up">Customer Sign-Up</a>
           <a class="nav-item nav-link" id="signUp" href="/staff-login">Employee Login</a>
