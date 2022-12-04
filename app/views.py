@@ -1,5 +1,5 @@
 from flask import Blueprint, render_template, request, flash, jsonify, redirect, url_for, session
-from datetime import datetime
+from datetime import datetime, timedelta
 from app import conn
 
 views = Blueprint('views', __name__)
@@ -33,9 +33,10 @@ def home():
         date = request.form.get('date')
 
         data = executeSearchQuery(source, destination)
-        urls = [f'purchase_flight/'+str(flight['flight_number']) for flight in data]
         if not data:
             flash("No flights found!", category='error')
+            return redirect(url_for('views.home'))
+        urls = [f'purchase_flight/'+str(flight['flight_number']) for flight in data]
         return render_template('home.html', user=session, data=zip(data, urls))
 
     return render_template('home.html', user=session, data=None)
@@ -45,11 +46,51 @@ def home():
 def view_flights():
     if session['user'] and session['customerOrStaff'] == 'customer':
         cursor = conn.cursor()
-        query = 'SELECT DISTINCT flight_number, flight_status, arrival_airport, departure_airport FROM tickets NATURAL JOIN flights where email = %s'
+        query = 'SELECT DISTINCT flight_number, flight_status, arrival_airport, departure_airport, ticket_id FROM tickets NATURAL JOIN flights WHERE email = %s'
         cursor.execute(query, (session['user']))
         data = cursor.fetchall()
+        if not data:
+            flash("No flights found!", category='error')
+            return redirect(url_for('views.home'))
         cursor.close()
-        return render_template('view_flights.html', user=session, flights=data)
+        urls = [f'flight_info/'+str(flight['ticket_id']) for flight in data]
+        for flight in data:
+            del flight['ticket_id']
+        print(data)
+        return render_template('view_flights.html', user=session, flights=zip(data, urls))
+    return redirect(url_for('views.home'))
+
+@views.route('/flight_info/<ticket_id>', methods=['GET', 'POST'])
+def cancel_flight(ticket_id):
+    if session['user'] and session['customerOrStaff'] == 'customer':
+        cursor = conn.cursor()
+        query = 'SELECT DISTINCT flight_number, flight_status, arrival_airport, departure_airport, ticket_id FROM tickets NATURAL JOIN flights WHERE ticket_id = %s'
+        cursor.execute(query, (ticket_id))
+        data = cursor.fetchone()
+        flight_number = data['flight_number']
+        departure_airport = data['departure_airport']
+        cursor.close()
+        if request.method=="POST":
+            if "go_back" in request.form:
+                return redirect(url_for('views.home'))
+            if "cancel" in request.form:
+                cursor = conn.cursor()
+                query = 'SELECT DISTINCT * FROM `departs` WHERE flight_number = %s and name = %s'
+                cursor.execute(query, (flight_number, departure_airport))
+                data = cursor.fetchone()
+                date_time = str(data['date']) + ' ' + str(data['time'])
+                date_time = datetime.strptime(date_time, '%Y-%m-%d %H:%M:%S')
+                if ((date_time) - datetime.now()).total_seconds() > 86400:
+                    query = 'DELETE FROM `tickets` WHERE ticket_id = %s'
+                    cursor.execute(query, (ticket_id))
+                    conn.commit()
+                    cursor.close()
+                    flash("Successfully canceled flight!", category="success")
+                else:
+                    flash("Unable to cancel flight", category="error")
+                return redirect(url_for('views.home'))
+        del data['ticket_id']
+        return render_template('flightInfo.html', flight=data)
     return redirect(url_for('views.home'))
 
 @views.route('/purchase_flight/<flight_number>', methods=['GET', 'POST'])

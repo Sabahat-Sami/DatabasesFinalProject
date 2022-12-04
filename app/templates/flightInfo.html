@@ -1,0 +1,11 @@
+{% extends "base.html" %} {% block title %}<title>Home</title>{% endblock %} {% block content
+    %}
+
+    <div>{{flight}}</div>
+    <form method="POST">
+        <input type="submit" name="go_back" value="go back"/>
+        <input type="submit" name="cancel" value="cancel flight"/>
+    </form>
+    
+    
+    {% endblock %}
