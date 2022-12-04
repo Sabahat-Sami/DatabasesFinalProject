@@ -40,9 +40,9 @@
       <button type="submit" class="btn btn-primary">Search</button>
     </form>
 {% else %}
-    {% for e in data %}
+    {% for e, url in data %}
         <div>
-            {{e}}
+            <a href={{url}}>{{e}}</a>
         </div>
     {% endfor %}
 {% endif %}

@@ -4,7 +4,6 @@ from . import conn
 from datetime import datetime
 import re
 
-date_of_birth_regex = "^(?:(?:31(\/|-|\.)(?:0?[13578]|1[02]))\1|(?:(?:29|30)(\/|-|\.)(?:0?[13-9]|1[0-2])\2))(?:(?:1[6-9]|[2-9]\d)?\d{2})$|^(?:29(\/|-|\.)0?2\3(?:(?:(?:1[6-9]|[2-9]\d)?(?:0[48]|[2468][048]|[13579][26])|(?:(?:16|[2468][048]|[3579][26])00))))$|^(?:0?[1-9]|1\d|2[0-8])(\/|-|\.)(?:(?:0?[1-9])|(?:1[0-2]))\4(?:(?:1[6-9]|[2-9]\d)?\d{2})$"
 auth = Blueprint('auth', __name__)
 
 
@@ -57,6 +56,57 @@ def logout():
 
 @auth.route('/customer-sign-up', methods=['GET', 'POST'])
 def customerSignUp():
+    if request.method == 'POST':
+        email = request.form.get('email').strip()
+        first_name = request.form.get('first_name').strip()
+        last_name = request.form.get('last_name').strip()
+        password = request.form.get('password').strip()
+        date_of_birth = request.form.get('date_of_birth').strip()
+        street = request.form.get('street').strip()
+        building_number = request.form.get('building_number').strip()
+        city = request.form.get('city').strip()
+        state = request.form.get('state').strip()
+        phone_number = request.form.get('phone_number').strip()
+        passport_number = request.form.get('passport_number').strip()
+        passport_expiration = request.form.get('passport_expiration').strip()
+        passport_country = request.form.get('passport_country').strip()
+        date_of_birth = date_of_birth.strip() + " 00:00:00"
+        passport_expiration = passport_expiration.strip() + " 00:00:00"
+        try:
+            date_of_birth = datetime.strptime(date_of_birth, '%Y-%m-%d %H:%M:%S')
+        except:
+            flash("date of birth must be in the format of YYYY-MM-DD", category="error")
+            return render_template('customerRegister.html')
+        try:
+            passport_expiration = datetime.strptime(passport_expiration, '%Y-%m-%d %H:%M:%S')
+        except:
+            flash("passport expiration must be in the format of YYYY-MM-DD", category="error")
+            return render_template('customerRegister.html')
+        cursor = conn.cursor()
+        query = 'SELECT * FROM customers WHERE email = %s'
+        cursor.execute(query, email)
+        data = cursor.fetchone()
+        cursor.close()
+        if (data):
+            flash('Email already in use!', category='error')
+        elif(len(first_name) < 2):
+            flash('First name must be greater than 1 character.', category='error')
+        elif(len(last_name) < 2):
+            flash('Last name must be greater than 1 character.', category='error')
+        elif(len(password) < 7):
+            flash('Password must be at least 7 characters.', category='error')
+        else:
+            full_name = first_name + ' ' + last_name
+            cursor = conn.cursor()
+            query = 'INSERT INTO `customers` (`name`, `email`, `user_password`, `building_number`, `street`, `city`, `state`, `phone_number`, `passport_number`, `passport_expiration`, `passport_country`, `date_of_birth`) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)'
+            cursor.execute(query, (full_name, email, password, building_number, street, city, state, phone_number, passport_number, passport_expiration, passport_country, date_of_birth))
+            conn.commit()
+            cursor.close()
+            session['user'] = email
+            session['customerOrStaff'] = 'customer'
+            flash('Account Created!', category='success')
+            return redirect(url_for('views.home'))
+        
     return render_template('customerRegister.html')
 @auth.route('/staff-sign-up', methods=['GET', 'POST'])
 def staffSignUp():
@@ -66,13 +116,12 @@ def staffSignUp():
         last_name = request.form.get('last_name').strip()
         password = request.form.get('password').strip()
         date_of_birth = request.form.get('date_of_birth').strip()
-        match = re.search(date_of_birth_regex, date_of_birth)
         print(date_of_birth)
         date_of_birth = date_of_birth.strip() + " 00:00:00"
         try:
             date_of_birth = datetime.strptime(date_of_birth, '%Y-%m-%d %H:%M:%S')
         except:
-            flash("date_of_birth must be in the format of YYYY-MM-DD", category="error")
+            flash("date of birth must be in the format of YYYY-MM-DD", category="error")
             return render_template('staffRegister.html')
         airline_name = request.form.get('airline_name').strip()
         cursor = conn.cursor()
@@ -82,6 +131,7 @@ def staffSignUp():
         query = 'SELECT * FROM airlines WHERE name = %s'
         cursor.execute(query, (airline_name))
         airline = cursor.fetchone()
+        cursor.close()
         if(data):
             flash('Username already in use!', category='error')
         elif(len(first_name) < 2):
@@ -95,7 +145,6 @@ def staffSignUp():
         elif(len(airline_name) < 2 or not airline):
             flash('Pleae enter a valid airline!', category='error')
         else:
-            print("hello")
             cursor = conn.cursor()
             query = 'INSERT INTO `staff` (`username`, `staff_password`, `first_name`, `last_name`, `date_of_birth`, `airline_name`) VALUES (%s, %s, %s, %s, %s, %s)'
             cursor.execute(query, (username, password, first_name, last_name, date_of_birth, airline_name))

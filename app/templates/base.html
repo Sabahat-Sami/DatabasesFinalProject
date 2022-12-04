@@ -36,7 +36,9 @@
           {% if session.user %}
               <a class="nav-item nav-link" id="home" href="/">Home</a>
               <a class="nav-item nav-link" id="home" href="/view_flights">View Flights</a>
+              {% if session.customerOrStaff == staff %}
               <a class="nav-item nav-link" id="home" href="/create_new_flight">Create Flight</a>
+              {% endif %}
               <a class="nav-item nav-link" id="logout" href="/logout">Logout</a>
           {% else %}
           <a class="nav-item nav-link" id="login" href="/customer-login">Customer Login</a>
