@@ -1,0 +1,16 @@
+{% extends "base.html" %} {% block title %}<title>Track Spending</title>{% endblock %} {% block content
+    %}
+
+<div>
+    <h1>Total Spend in the last year: {{data}}</h1>
+</div>
+
+<form method="POST" id="trackSpending">
+    <input type="text" name="start_date_range" placeholder="Start of my range" required minlength="2"/>
+    </br> 
+    <input type="text" name="end_date_range" placeholder="End of my range" required minlength="2"/>
+    </br> 
+    <input type="submit" value = "Track Spending" />
+</form>
+
+{% endblock %}

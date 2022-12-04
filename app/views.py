@@ -23,6 +23,7 @@ def executeSearchQuery(arrival, departure):
     cursor.close()
     return data
 
+
 @views.route('/', methods=['GET', 'POST'])
 # @login_required
 def home():
@@ -60,6 +61,7 @@ def view_flights():
         return render_template('view_flights.html', user=session, flights=zip(data, urls))
     return redirect(url_for('views.home'))
 
+
 @views.route('/flight_info/<ticket_id>', methods=['GET', 'POST'])
 def cancel_flight(ticket_id):
     if session['user'] and session['customerOrStaff'] == 'customer':
@@ -92,6 +94,7 @@ def cancel_flight(ticket_id):
         del data['ticket_id']
         return render_template('flightInfo.html', flight=data)
     return redirect(url_for('views.home'))
+
 
 @views.route('/purchase_flight/<flight_number>', methods=['GET', 'POST'])
 def purchase_flight(flight_number):
@@ -143,6 +146,26 @@ def purchase_flight(flight_number):
                 return redirect(url_for('views.home'))
         return render_template('purchaseFlights.html', user=session, data=sold_price)
     return redirect(url_for('views.home'))
+
+
+#incomplete
+#needs to take in user input for start_date_range and end_date_range
+@views.route('/trackSpending', methods=['GET', 'POST'])
+def track_spending():
+    if session['user'] and session['customerOrStaff'] == 'customer':
+        cursor = conn.cursor()
+        query = ''
+        cursor.execute(query, (session['user']))
+        data = cursor.fetchall()
+        if not data:
+            flash("No spending found!", category='error')
+            return redirect(url_for('views.home'))
+        cursor.close()
+
+        return render_template('view_flights.html', spending=data)
+    return redirect(url_for('views.home'))
+
+
 @views.route('/create_new_flight', methods=['GET', 'POST'])
 def create_new_flight():
     return render_template('home.html', user=session)
