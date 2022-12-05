@@ -273,9 +273,36 @@ def change_flight_status(flight_number):
     return render_template('change_flight_status.html', user=session, flight=data)
 
 
-@views.route('/staff_manage_new_airplane', methods=['GET', 'POST'])
+@views.route('/staff_manage_airplane', methods=['GET', 'POST'])
 def add_new_airplane():
-    return render_template('home.html', user=session, search=None)
+    if session['user'] and session['customerOrStaff'] == 'staff':
+        if request.method == "POST":
+            identification_number = request.form.get("identification_number")
+            num_of_seats = request.form.get("number_of_seats")
+            manufacturing_company = request.form.get("manufacturing_company")
+            age =request.form.get("age")
+
+            cursor = conn.cursor()
+            query = "INSERT INTO `airplanes` VALUES (%s, %s, %s, %s)"
+            print((int(identification_number), int(num_of_seats), manufacturing_company, int(age)))
+            cursor.execute(query,(int(identification_number), int(num_of_seats), manufacturing_company, int(age)))
+            conn.commit()
+
+            query= "INSERT INTO `owns` VALUES (%s, %s)"
+            cursor.execute(query, (session["staff_airline"], identification_number))
+            conn.commit()
+            cursor.close()
+
+        # pass all flights of airline staff works for
+        cursor = conn.cursor()
+        query = 'SELECT DISTINCT * FROM airplanes WHERE airplanes.identification_number IN (SELECT identification_number FROM owns WHERE name=%s);'
+        cursor.execute(query, (session['staff_airline']))
+        data = cursor.fetchall()
+        if not data:
+            flash("No Airlines found!", category='error')
+        cursor.close()
+        return render_template('staff_manage_airplane.html', user=session, airplanes=data)
+
 
 
 @views.route('/staff_manage_new_airport', methods=['GET', 'POST'])

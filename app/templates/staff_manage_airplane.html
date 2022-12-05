@@ -1,0 +1,24 @@
+{% extends "base.html" %} {% block title %}<title>Staff Register</title>{% endblock %} {% block content
+    %}
+
+    <ul>
+        <li>
+            {% for airplane in airplanes %}
+                <p>{{ airplane }}</p>
+            {% endfor %}
+        </li>
+    </ul>
+
+<form method="POST" id="registerForm">
+    <input type="text" id="identification_number" name="identification_number" m placeholder="identification number" required/>
+    </br>
+    <input type="text" id="number_of_seats" name="number_of_seats" placeholder="number of seats" required/>
+    </br>
+    <input type="text" id="manufacturing_company" name="manufacturing_company" placeholder="manufacturing company" required/>
+    </br>
+    <input type="text" id="age" name="age" placeholder="age" required/>
+    </br>
+    <input type="submit" value="Register"/>
+</form>
+
+{% endblock %}
