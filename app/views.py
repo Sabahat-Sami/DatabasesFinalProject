@@ -305,9 +305,34 @@ def add_new_airplane():
 
 
 
-@views.route('/staff_manage_new_airport', methods=['GET', 'POST'])
-def add_new_airport():
-    return render_template('home.html', user=session, search=None)
+@views.route('/staff_manage_airports', methods=['GET', 'POST'])
+def staff_manage_new_airports():
+    if session['user'] and session['customerOrStaff'] == 'staff':
+        if request.method == "POST":
+            name = request.form.get("name")
+            city = request.form.get("city")
+            airport_type = request.form["airport_type"]
+
+
+            cursor = conn.cursor()
+            query = "INSERT INTO `airports` VALUES (%s, %s, %s)"
+            cursor.execute(query, (name, city, airport_type))
+            conn.commit()
+
+            # query = "INSERT INTO `owns` VALUES (%s, %s)"
+            # cursor.execute(query, (session["staff_airline"], identification_number))
+            # conn.commit()
+            cursor.close()
+
+        # pass all flights of airline staff works for
+        cursor = conn.cursor()
+        query = 'SELECT * FROM airports;'
+        cursor.execute(query)
+        data = cursor.fetchall()
+        if not data:
+            flash("No Airports found!", category='error')
+        cursor.close()
+        return render_template('staff_manage_airports.html', user=session, airports=data)
 
 
 @views.route('/staff_view_flight_ratings', methods=['GET', 'POST'])

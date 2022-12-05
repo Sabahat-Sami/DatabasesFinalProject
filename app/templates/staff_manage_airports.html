@@ -1,0 +1,23 @@
+{% extends "base.html" %} {% block title %}<title>Staff Register</title>{% endblock %} {% block content
+    %}
+
+    <h4>All Airports</h4>
+    <ul>
+            {% for airport in airports %}
+                <li>
+                <p>{{ airport }}</p>
+                </li>
+            {% endfor %}
+    </ul>
+
+<form method="POST" id="registerForm">
+    <input type="text" id="name" name="name" placeholder="name" required/>
+    </br>
+    <input type="text" id="city" name="city" placeholder="city" required/>
+    </br>
+    <input type="radio" name="airport_type" value="National">National<br>
+    <input type="radio" name="airport_type" value="International" checked>International<br>
+    <input type="submit" value="Register"/>
+</form>
+
+{% endblock %}

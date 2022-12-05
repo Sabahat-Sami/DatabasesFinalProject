@@ -1,16 +1,17 @@
 {% extends "base.html" %} {% block title %}<title>Staff Register</title>{% endblock %} {% block content
     %}
 
+    <h4>All Airplanes Owned by {{ user.staff_airline }}</h4>
     <ul>
-        <li>
             {% for airplane in airplanes %}
+                <li>
                 <p>{{ airplane }}</p>
+                </li>
             {% endfor %}
-        </li>
     </ul>
 
 <form method="POST" id="registerForm">
-    <input type="text" id="identification_number" name="identification_number" m placeholder="identification number" required/>
+    <input type="text" id="identification_number" name="identification_number" placeholder="identification number" required/>
     </br>
     <input type="text" id="number_of_seats" name="number_of_seats" placeholder="number of seats" required/>
     </br>

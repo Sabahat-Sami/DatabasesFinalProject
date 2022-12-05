@@ -2,13 +2,13 @@
     %}
 
     <ul>
-        <li>
             {% for flight in flights %}
+                <li>
                 <p>{{ flight }}
                 <a href='/staff_manage_flights/change_flight_status/{{ flight.flight_number }}'>Change Status</a>
                 </p>
+                </li>
             {% endfor %}
-        </li>
     </ul>
 
 <form method="POST" id="registerForm">
