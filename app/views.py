@@ -177,7 +177,7 @@ def purchase_flight(flight_number):
 def track_spending():
     if session['user'] and session['customerOrStaff'] == 'customer':
         cursor = conn.cursor()
-        query = 'SELECT sold_price FROM tickets where date_time >= %s'
+        query = 'SELECT sold_price, date_time FROM tickets where date_time >= %s'
         one_year_ago = datetime.now() - relativedelta(years=1)
         cursor.execute(query, (one_year_ago))
         data = cursor.fetchall()
@@ -185,10 +185,41 @@ def track_spending():
             flash("No tickets were bought in the last year", category='error')
             return redirect(url_for('views.home'))
         cursor.close()
+        today = datetime.now()
+        one_month_ago = datetime.now() - relativedelta(months=1)
+        two_months_ago = datetime.now() - relativedelta(months=2)
+        three_months_ago = datetime.now() - relativedelta(months=3)
+        four_months_ago = datetime.now() - relativedelta(months=4)
+        five_months_ago = datetime.now() - relativedelta(months=5)
+        six_months_ago = datetime.now() - relativedelta(months=6)
         spent_this_year = 0
-        for sold_price in data:
+        spent_this_month = 0
+        spent_one_month_ago = 0
+        spent_two_months_ago = 0
+        spent_three_months_ago = 0
+        spent_four_months_ago = 0
+        spent_five_months_ago = 0
+        for sold_price, date_time in data:
             spent_this_year += sold_price
+            if date_time > one_month_ago:
+                spent_this_month += sold_price
+            elif date_time > two_months_ago:
+                spent_one_month_ago += sold_price
+            elif date_time > three_months_ago:
+                spent_two_months_ago += sold_price
+            elif date_time > four_months_ago:
+                spent_three_months_ago += sold_price
+            elif date_time > five_months_ago:
+                spent_four_months_ago += sold_price
+            elif date_time > six_months_ago:
+                spent_five_months_ago += sold_price
         track_this_year = "$" + str(spent_this_year)
+        track_this_month = "$" + str(spent_this_month)
+        track_one_month_ago = "$" + str(spent_one_month_ago)
+        track_two_months_ago = "$" + str(spent_two_months_ago)
+        track_three_months_ago = "$" + str(spent_three_months_ago)
+        track_four_months_ago = "$" + str(spent_four_months_ago)
+        track_five_months_ago = "$" + str(spent_five_months_ago)
         if request.method == "POST":
             start_date = request.form.get("start_date_range")
             end_date = request.form.get("end_date_range")
@@ -217,7 +248,16 @@ def track_spending():
             for sold_price in data2:
                 spent += sold_price
             track_spent = "$" + str(spent)
-        return render_template('trackSpending.html', data_1 = track_this_year, data_2 = track_spent)
+        # return render_template('trackSpending.html', data_1 = track_this_year, data_2 = track_spent)
+        return render_template('trackSpending.html',
+                                data_1=track_this_year,
+                                month_1=track_this_month,
+                                month_2=track_one_month_ago,
+                                month_3=track_two_months_ago,
+                                month_4=track_three_months_ago,
+                                month_5=track_four_months_ago,
+                                month_6=track_five_months_ago,
+                                data_2 = track_spent)
     return redirect(url_for('views.home'))
 
 

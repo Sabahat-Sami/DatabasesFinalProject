@@ -12,11 +12,17 @@
 
   <body>
     <div id="container" style="width: 50%; height: 50%"></div>
-    <script>
+    <script type="text/javascript" src="trackSpending.js"></script>
+    <script type="text/javascript">
       anychart.onDocumentReady(function() {
         // set the data
-        
         // spending_1 = myFunc({{ month_1 | tojson }});
+        var spending_1 = "{{ month_1 }}";
+        var spending_2 = "{{ month_2 }}";
+        var spending_3 = "{{ month_3 }}";
+        var spending_4 = "{{ month_4 }}";
+        var spending_5 = "{{ month_5 }}";
+        var spending_6 = "{{ month_6 }}";
         spending_1 = 1500
         spending_2 = 1500
         spending_3 = 1500
@@ -24,21 +30,14 @@
         spending_5 = 24200
         spending_6 = 1500
         var data = {
-            header: ["Name", "Death toll"],
+            header: ["Month", "Spent"],
             rows: [
-            //   Test to show that it auto scales for us
-            //   ["This Month", 1500],
-            //   ["Last Month", 87000],
-            //   ["Two Months Ago", 175000],
-            //   ["Three Months Ago", 10000],
-            //   ["Four Months Ago", 24200],
-            //   ["Five Months Ago", 25000],
               ["This Month", spending_1],
               ["Last Month", spending_2],
-              ["Two Months Ago", 175000],
-              ["Three Months Ago", 10000],
-              ["Four Months Ago", spending_4],
-              ["Five Months Ago", 25000],
+              ["Two Months Ago", spending_3],
+              ["Three Months Ago", spending_4],
+              ["Four Months Ago", spending_5],
+              ["Five Months Ago", spending_6],
         ]};
         // create the chart
         var chart = anychart.bar();
