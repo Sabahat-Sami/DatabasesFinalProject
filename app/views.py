@@ -1,5 +1,6 @@
 from flask import Blueprint, render_template, request, flash, jsonify, redirect, url_for, session
 from datetime import datetime, timedelta
+from dateutil.relativedelta import relativedelta
 from app import conn
 
 views = Blueprint('views', __name__)
@@ -172,21 +173,51 @@ def purchase_flight(flight_number):
     return redirect(url_for('views.home'))
 
 
-#incomplete
-#needs to take in user input for start_date_range and end_date_range
 @views.route('/trackSpending', methods=['GET', 'POST'])
 def track_spending():
     if session['user'] and session['customerOrStaff'] == 'customer':
         cursor = conn.cursor()
-        query = ''
-        cursor.execute(query, (session['user']))
+        query = 'SELECT sold_price FROM tickets where date_time >= %s'
+        one_year_ago = datetime.now() - relativedelta(years=1)
+        cursor.execute(query, (one_year_ago))
         data = cursor.fetchall()
         if not data:
-            flash("No spending found!", category='error')
+            flash("No tickets were bought in the last year", category='error')
             return redirect(url_for('views.home'))
         cursor.close()
-
-        return render_template('view_flights.html', spending=data)
+        spent_this_year = 0
+        for sold_price in data:
+            spent_this_year += sold_price
+        track_this_year = "$" + str(spent_this_year)
+        if request.method == "POST":
+            start_date = request.form.get("start_date_range")
+            end_date = request.form.get("end_date_range")
+            try:
+                start_date = datetime.strptime(start_date, '%Y-%m-%d %H:%M:%S')
+            except:
+                flash("start date range must be in the format of YYYY-MM-DD", category="error")
+                return render_template('trackSpending.html')
+            try:
+                end_date = datetime.strptime(end_date, '%Y-%m-%d %H:%M:%S')
+            except:
+                flash("end date range must be in the format of YYYY-MM-DD", category="error")
+                return render_template('trackSpending.html')
+            if start_date > end_date:
+                flash("start date cannot be after end date", category="error")
+                return render_template('trackSpending.html')
+            cursor = conn.cursor()
+            query2 = 'SELECT sold_price FROM tickets where date_time > %s and date_time < %s'
+            cursor.execute(query2, (start_date, end_date))
+            data2 = cursor.fetchone()
+            if not data:
+                flash("No tickets were bought in the range selected", category='error')
+                return redirect(url_for('views.home'))
+            cursor.close()
+            spent = 0
+            for sold_price in data2:
+                spent += sold_price
+            track_spent = "$" + str(spent)
+        return render_template('trackSpending.html', data_1 = track_this_year, data_2 = track_spent)
     return redirect(url_for('views.home'))
 
 
