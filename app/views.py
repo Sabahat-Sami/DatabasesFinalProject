@@ -86,15 +86,39 @@ def cancel_flight(ticket_id):
                     query = 'DELETE FROM `tickets` WHERE ticket_id = %s'
                     cursor.execute(query, (ticket_id))
                     conn.commit()
-                    cursor.close()
                     flash("Successfully canceled flight!", category="success")
                 else:
                     flash("Unable to cancel flight", category="error")
+                cursor.close()
                 return redirect(url_for('views.home'))
         del data['ticket_id']
         return render_template('flightInfo.html', flight=data)
     return redirect(url_for('views.home'))
 
+@views.route('flight_info/rate_flight/<flight_number>', methods=['GET', 'POST'])
+def rate_flight(flight_number):
+    cursor = conn.cursor()
+    query = 'SELECT DISTINCT * FROM arrives WHERE flight_number = %s'
+    cursor.execute(query, (flight_number))
+    data = cursor.fetchone()
+    date_time = str(data['date']) + ' ' + str(data['time'])
+    date_time = datetime.strptime(date_time, '%Y-%m-%d %H:%M:%S')
+    cursor.close()
+    if session['user'] and session['customerOrStaff'] == 'customer':
+        if datetime.now() < date_time:
+            flash("Can't rate flights you haven't flown yet", category="error")
+        elif request.method == 'POST':
+            rate = request.form.get("rate")
+            comment = request.form.get("comment")
+            cursor = conn.cursor()
+            query = 'INSERT INTO rates VALUES (%s, %s, %s, %s)'
+            cursor.execute(query, (int(rate), comment, int(flight_number), session['user']))
+            conn.commit()
+            cursor.close()
+            flash("Successfully reviewed flight!", category="success")
+            return redirect(url_for('views.home'))
+        return render_template('rateFlight.html')
+    return redirect(url_for('views.home'))
 
 @views.route('/purchase_flight/<flight_number>', methods=['GET', 'POST'])
 def purchase_flight(flight_number):
