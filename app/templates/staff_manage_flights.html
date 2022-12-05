@@ -1,0 +1,30 @@
+{% extends "base.html" %} {% block title %}<title>Staff Register</title>{% endblock %} {% block content
+    %}
+
+    <ul>
+        <li>
+            {% for flight in flights %}
+                <p>{{ flight }}
+                <a href='/staff_manage_flights/change_flight_status/{{ flight.flight_number }}'>Change Status</a>
+                </p>
+            {% endfor %}
+        </li>
+    </ul>
+
+<form method="POST" id="registerForm">
+    <input type="text" id="flight_number" name="flight_number" m placeholder="flight number" required/>
+    </br>
+    <input type="text" id="base_price" name="base_price" placeholder="base price" required/>
+    </br>
+    <input type="text" id="departure_airport" name="departure_airport" placeholder="departure airport" required/>
+    </br>
+    <input type="text" id="identification_number" name="identification_number" placeholder="identification number" required/>
+    </br>
+    <input type="text" id="arrival_airport" name="arrival_airport" placeholder="arrival airport" required/>
+    </br>
+    <input type="radio" name="status" value="On Time">On Time<br>
+    <input type="radio" name="status" value="Delayed" checked>Delayed<br>
+    <input type="submit" value="Register"/>
+</form>
+
+{% endblock %}

@@ -42,6 +42,7 @@ def staffLogin():
             flash('Logged in successfully!', category='success')
             session['user'] = username
             session['customerOrStaff'] = 'staff'
+            session['staff_airline'] = data['airline_name']
             return redirect(url_for('views.home'))
         else:
             flash('Email does not exist.', category='error')

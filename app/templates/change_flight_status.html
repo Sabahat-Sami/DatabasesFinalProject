@@ -1,0 +1,9 @@
+{% extends "base.html" %} {% block title %}<title>Staff Register</title>{% endblock %} {% block content
+    %}
+<form method="POST" id="registerForm">
+    <input type="radio" name="status" value="On Time">On Time<br>
+    <input type="radio" name="status" value="Delayed" checked>Delayed<br>
+    <input type="submit" value="Register"/>
+</form>
+
+{% endblock %}

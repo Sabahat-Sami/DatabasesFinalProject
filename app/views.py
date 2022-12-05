@@ -221,37 +221,79 @@ def track_spending():
     return redirect(url_for('views.home'))
 
 
-@views.route('/create_new_flight', methods=['GET', 'POST'])
-def create_new_flight():
-    return render_template('home.html', user=session)
+####################################################################
+#----------------------------STAFF CASES------------------------------
+
+@views.route('/staff_manage_flights', methods=['GET', 'POST'])
+def staff_manage_flights():
+    if session['user'] and session['customerOrStaff'] == 'staff':
+        if request.method == "POST":
+            flight_number = request.form.get("flight_number")
+            base_price = request.form.get("base_price")
+            departure_airport = request.form.get("departure_airport")
+            flight_status = request.form["status"]
+            identification_number = request.form.get("identification_number")
+            arrival_airport = request.form.get("arrival_airport")
+
+            cursor = conn.cursor()
+            query = "INSERT INTO `flights` VALUES (%s, %s, %s, %s, %s, %s)"
+            print((int(flight_number), float(base_price), departure_airport, flight_status, int(identification_number), arrival_airport))
+            cursor.execute(query, (int(flight_number), float(base_price), departure_airport, flight_status, int(identification_number), arrival_airport))
+            conn.commit()
+            cursor.close()
+
+        # pass all flights of airline staff works for
+        cursor = conn.cursor()
+        query = 'SELECT DISTINCT * FROM flights WHERE flights.identification_number in (select identification_number from owns where name=%s);'
+        cursor.execute(query, (session['staff_airline']))
+        data = cursor.fetchall()
+        if not data:
+            flash("No flights found!", category='error')
+            return redirect(url_for('views.home'))
+        cursor.close()
+        return render_template('staff_manage_flights.html', user=session, flights=data)
 
 
-@views.route('/change_flight_status', methods=['GET', 'POST'])
-def change_flight_status():
-    return render_template('home.html', user=session, search=None)
+@views.route('/staff_manage_flights/change_flight_status/<flight_number>', methods=['GET', 'POST'])
+def change_flight_status(flight_number):
+    if request.method == "POST":
+        flight_status = request.form["status"]
+
+        cursor = conn.cursor()
+        updateStatement = 'UPDATE FLIGHTS SET flight_status = %s WHERE flight_number=%s;'
+        print(updateStatement)
+        cursor.execute(updateStatement, (flight_status, flight_number))
+        conn.commit()
+        cursor.close()
+        return redirect(url_for('views.staff_manage_flights'))
+    cursor = conn.cursor()
+    query = 'SELECT * FROM flights WHERE flight_number=%s'
+    cursor.execute(query, flight_number)
+    data = cursor.fetchone()
+    return render_template('change_flight_status.html', user=session, flight=data)
 
 
-@views.route('/add_new_airplane', methods=['GET', 'POST'])
+@views.route('/staff_manage_new_airplane', methods=['GET', 'POST'])
 def add_new_airplane():
     return render_template('home.html', user=session, search=None)
 
 
-@views.route('/add_new_airport', methods=['GET', 'POST'])
+@views.route('/staff_manage_new_airport', methods=['GET', 'POST'])
 def add_new_airport():
     return render_template('home.html', user=session, search=None)
 
 
-@views.route('/view_flight_ratings', methods=['GET', 'POST'])
+@views.route('/staff_view_flight_ratings', methods=['GET', 'POST'])
 def view_flight_ratings():
     return render_template('home.html', user=session, search=None)
 
 
-@views.route('/view_frequent_customers', methods=['GET', 'POST'])
+@views.route('/staff_view_frequent_customers', methods=['GET', 'POST'])
 def view_frequent_customers():
     return render_template('home.html', user=session, search=None)
 
 
-@views.route('/view_reports', methods=['GET', 'POST'])
+@views.route('/staff_view_reports', methods=['GET', 'POST'])
 def view_reports():
     return render_template('home.html', user=session, search=None)
 
