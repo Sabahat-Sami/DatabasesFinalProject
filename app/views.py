@@ -336,8 +336,22 @@ def staff_manage_new_airports():
 
 
 @views.route('/staff_view_flight_ratings', methods=['GET', 'POST'])
-def view_flight_ratings():
-    return render_template('home.html', user=session, search=None)
+def staff_view_flight_ratings():
+    if session['user'] and session['customerOrStaff'] == 'staff':
+        flight_number = None
+        data = None
+        if request.method == "POST":
+            flight_number = request.form.get("flight_number")
+
+            cursor = conn.cursor()
+            query = "SELECT * FROM RATES WHERE flight_number=%s"
+            cursor.execute(query, flight_number)
+            data = cursor.fetchall()
+            if not data:
+                flash("No Ratings Found!", category='error')
+            cursor.close()
+
+        return render_template('staff_view_flight_ratings.html', user=session, ratings=data)
 
 
 @views.route('/staff_view_frequent_customers', methods=['GET', 'POST'])
