@@ -1,9 +1,56 @@
 {% extends "base.html" %} {% block title %}<title>Track Spending</title>{% endblock %} {% block content
     %}
 
+<link rel="stylesheet" href="trackSpending.css">
+
 <div>
     <h1>Total Spend in the last year: {{data_1}}</h1>
 </div>
+
+
+<div style="overflow:auto" >
+
+</div>
+
+<section>
+    <h2>Spending in the last 6 months</h2> 
+    <ul class="chart">
+      <li style="grid-column: span 9" + >
+        Month 1:
+        <span>9</span>
+      </li>
+  
+      <li style="grid-column: span 11">
+        Month 2:
+        <span>11</span>
+      </li>
+  
+      <li style="grid-column: span 5">
+        Month 3:
+        <span>5</span>
+      </li>
+  
+      <li style="grid-column: span 11">
+        Month 4:
+        <span>11</span>
+      </li>
+  
+      <li style="grid-column: span 6">
+        Month 5:
+        <span>6</span>
+      </li>
+  
+      <li style="grid-column: span 6">
+        Month 6:
+        <span>6</span>
+      </li>
+    </ul> 
+  </section>
+
+
+
+
+
 
 <form method="POST" id="trackSpending">
     <input type="text" name="start_date_range" placeholder="Start of my range" required minlength="2"/>
@@ -12,6 +59,7 @@
     </br> 
     <input type="submit" value = "Track Spending" />
 </form>
+
 
 <div>
     <h2>Total Spend in the selected range: {{data_2}}</h1>
