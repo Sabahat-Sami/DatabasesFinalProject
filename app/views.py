@@ -6,20 +6,51 @@ from app import conn
 views = Blueprint('views', __name__)
 
 
-def executeSearchQuery(arrival, departure):
+def executeSearchQuery(arrival, departure, date, departOrArrive):
     cursor = conn.cursor()
-    if arrival == "" and departure == "":
+    if arrival == "" and departure == "" and date == "":
         query = 'SELECT flights.flight_number, flights.base_price, flights.departure_airport, flights.arrival_airport, departs.date, departs.time, arrives.date, arrives.time FROM flights, departs, arrives WHERE flights.flight_number = departs.flight_number AND flights.flight_number = arrives.flight_number AND %s < departs.date AND %s < departs.time'
         cursor.execute(query, (datetime.today(), datetime.now().strftime("%H:%M:5S")))
-    elif arrival != "" and departure == "":
-        query = 'SELECT * FROM flights, departs, arrives WHERE flights.flight_number = departs.flight_number = arrives.flight_number AND %s < departs.date AND %s < departs.time AND arrival_airport=%s'
+    elif arrival != "" and departure == "" and date == "":
+        query = 'SELECT flights.flight_number, flights.base_price, flights.departure_airport, flights.arrival_airport, departs.date, departs.time, arrives.date, arrives.time FROM flights, departs, arrives WHERE flights.flight_number = departs.flight_number = arrives.flight_number AND %s < departs.date AND %s < departs.time AND arrival_airport=%s'
         cursor.execute(query, (datetime.today(), datetime.now().strftime("%H:%M:5S"),arrival))
-    elif arrival == "" and departure != "":
-        query = 'SELECT * FROM flights, departs, arrives WHERE flights.flight_number = departs.flight_number = arrives.flight_number AND %s < departs.date AND %s < departs.time AND departure_airport=%s'
+    elif arrival == "" and departure != "" and date == "":
+        query = 'SELECT flights.flight_number, flights.base_price, flights.departure_airport, flights.arrival_airport, departs.date, departs.time, arrives.date, arrives.time FROM flights, departs, arrives WHERE flights.flight_number = departs.flight_number = arrives.flight_number AND %s < departs.date AND %s < departs.time AND departure_airport=%s'
         cursor.execute(query, (datetime.today(), datetime.now().strftime("%H:%M:5S"),departure))
+    elif arrival != "" and departure != "" and date == "":
+        query = 'SELECT flights.flight_number, flights.base_price, flights.departure_airport, flights.arrival_airport, departs.date, departs.time, arrives.date, arrives.time FROM flights, departs, arrives WHERE flights.flight_number = departs.flight_number = arrives.flight_number AND %s < departs.date AND %s < departs.time AND arrival_airport=%s AND departure_airport=%s'
+        cursor.execute(query, (datetime.today(), datetime.now().strftime("%H:%M:5S"),arrival, departure))
+
+    elif departOrArrive == "Departing":
+        date += " 00:00:00"
+        date_time = datetime.strptime(date, '%Y-%m-%d %H:%M:%S')
+        if arrival == "" and departure == "":
+            query = 'SELECT flights.flight_number, flights.base_price, flights.departure_airport, flights.arrival_airport, departs.date, departs.time, arrives.date, arrives.time FROM flights, departs, arrives WHERE flights.flight_number = departs.flight_number AND flights.flight_number = arrives.flight_number AND %s = departs.date'
+            cursor.execute(query, date_time)
+        elif arrival != "" and departure == "":
+            query = 'SELECT flights.flight_number, flights.base_price, flights.departure_airport, flights.arrival_airport, departs.date, departs.time, arrives.date, arrives.time FROM flights, departs, arrives WHERE flights.flight_number = departs.flight_number = arrives.flight_number AND %s = departs.date AND arrival_airport=%s'
+            cursor.execute(query, (date_time, arrival))
+        elif arrival == "" and departure != "":
+            query = 'SELECT flights.flight_number, flights.base_price, flights.departure_airport, flights.arrival_airport, departs.date, departs.time, arrives.date, arrives.time FROM flights, departs, arrives WHERE flights.flight_number = departs.flight_number = arrives.flight_number AND %s = departs.date departure_airport=%s'
+            cursor.execute(query, (date_time, departure))
+        else:
+            query = 'SELECT flights.flight_number, flights.base_price, flights.departure_airport, flights.arrival_airport, departs.date, departs.time, arrives.date, arrives.time FROM flights, departs, arrives WHERE flights.flight_number = departs.flight_number = arrives.flight_number AND %s = departs.date AND arrival_airport=%s AND departure_airport=%s'
+            cursor.execute(query, (date_time, arrival, departure))
     else:
-        query = 'SELECT * FROM flights, departs, arrives WHERE flights.flight_number = departs.flight_number = arrives.flight_number AND %s < departs.date AND %s < departs.time AND arrival_airport=%s AND departure_airport=%s'
-        cursor.execute(query,(datetime.today(), datetime.now().strftime("%H:%M:5S"), arrival, departure))
+        date += " 00:00:00"
+        date_time = datetime.strptime(date, '%Y-%m-%d %H:%M:%S')
+        if arrival == "" and departure == "":
+            query = 'SELECT flights.flight_number, flights.base_price, flights.departure_airport, flights.arrival_airport, departs.date, departs.time, arrives.date, arrives.time FROM flights, departs, arrives WHERE flights.flight_number = departs.flight_number AND flights.flight_number = arrives.flight_number AND %s = arrives.date'
+            cursor.execute(query, (date_time))
+        elif arrival != "" and departure == "":
+            query = 'SELECT flights.flight_number, flights.base_price, flights.departure_airport, flights.arrival_airport, departs.date, departs.time, arrives.date, arrives.time FROM flights, departs, arrives WHERE flights.flight_number = departs.flight_number = arrives.flight_number AND %s = arrives.date AND arrival_airport=%s'
+            cursor.execute(query, (date_time, arrival))        
+        elif arrival == "" and departure != "":
+            query = 'SELECT flights.flight_number, flights.base_price, flights.departure_airport, flights.arrival_airport, departs.date, departs.time, arrives.date, arrives.time FROM flights, departs, arrives WHERE flights.flight_number = departs.flight_number = arrives.flight_number AND %s = arrives.date departure_airport=%s'
+            cursor.execute(query, (date_time, departure))
+        else:
+            query = 'SELECT flights.flight_number, flights.base_price, flights.departure_airport, flights.arrival_airport, departs.date, departs.time, arrives.date, arrives.time FROM flights, departs, arrives WHERE flights.flight_number = departs.flight_number = arrives.flight_number AND %s = arrives.date AND arrival_airport=%s AND departure_airport=%s'
+            cursor.execute(query, (date_time, arrival, departure))
     data = cursor.fetchall()
     cursor.close()
     return data
@@ -33,8 +64,8 @@ def home():
         print('source: ',source)
         destination = request.form.get('destination')
         date = request.form.get('date')
-
-        data = executeSearchQuery(destination, source)
+        departOrArrive = request.form.get("departOrArrive")
+        data = executeSearchQuery(destination, source, date, departOrArrive)
         if not data:
             flash("No flights found!", category='error')
             return redirect(url_for('views.home'))
