@@ -208,9 +208,9 @@ def purchase_flight(flight_number):
 def track_spending():
     if session['user'] and session['customerOrStaff'] == 'customer':
         cursor = conn.cursor()
-        query = 'SELECT sold_price, date_time FROM tickets where date_time >= %s'
+        query = 'SELECT sold_price, date_time FROM tickets where date_time >= %s and email = %s'
         one_year_ago = datetime.now() - relativedelta(years=1)
-        cursor.execute(query, (one_year_ago))
+        cursor.execute(query, (one_year_ago, session['user']))
         data = cursor.fetchall()
         if not data:
             flash("No tickets were bought in the last year", category='error')
@@ -230,7 +230,9 @@ def track_spending():
         spent_three_months_ago = 0
         spent_four_months_ago = 0
         spent_five_months_ago = 0
-        for sold_price, date_time in data:
+        for flight in data:
+            sold_price = flight['sold_price']
+            date_time = flight['date_time']
             spent_this_year += sold_price
             if date_time > one_month_ago:
                 spent_this_month += sold_price
@@ -251,6 +253,7 @@ def track_spending():
         track_three_months_ago = "$" + str(spent_three_months_ago)
         track_four_months_ago = "$" + str(spent_four_months_ago)
         track_five_months_ago = "$" + str(spent_five_months_ago)
+        track_spent = "$" + str(spent_this_year)
         if request.method == "POST":
             start_date = request.form.get("start_date_range")
             end_date = request.form.get("end_date_range")
