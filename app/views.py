@@ -9,17 +9,17 @@ views = Blueprint('views', __name__)
 def executeSearchQuery(arrival, departure):
     cursor = conn.cursor()
     if arrival == "" and departure == "":
-        query = 'SELECT * FROM flights'
-        cursor.execute(query)
+        query = 'SELECT flights.flight_number, flights.base_price, flights.departure_airport, flights.arrival_airport, departs.date, departs.time, arrives.date, arrives.time FROM flights, departs, arrives WHERE flights.flight_number = departs.flight_number AND flights.flight_number = arrives.flight_number AND %s < departs.date AND %s < departs.time'
+        cursor.execute(query, (datetime.today(), datetime.now().strftime("%H:%M:5S")))
     elif arrival != "" and departure == "":
-        query = 'SELECT * FROM flights WHERE arrival_airport=%s'
-        cursor.execute(query, (arrival))
+        query = 'SELECT * FROM flights, departs, arrives WHERE flights.flight_number = departs.flight_number = arrives.flight_number AND %s < departs.date AND %s < departs.time AND arrival_airport=%s'
+        cursor.execute(query, (datetime.today(), datetime.now().strftime("%H:%M:5S"),arrival))
     elif arrival == "" and departure != "":
-        query = 'SELECT * FROM flights WHERE departure_airport=%s'
-        cursor.execute(query, (departure))
+        query = 'SELECT * FROM flights, departs, arrives WHERE flights.flight_number = departs.flight_number = arrives.flight_number AND %s < departs.date AND %s < departs.time AND departure_airport=%s'
+        cursor.execute(query, (datetime.today(), datetime.now().strftime("%H:%M:5S"),departure))
     else:
-        query = 'SELECT * FROM flights WHERE arrival_airport=%s and departure_airport=%s'
-        cursor.execute(query,(arrival, departure))
+        query = 'SELECT * FROM flights, departs, arrives WHERE flights.flight_number = departs.flight_number = arrives.flight_number AND %s < departs.date AND %s < departs.time AND arrival_airport=%s AND departure_airport=%s'
+        cursor.execute(query,(datetime.today(), datetime.now().strftime("%H:%M:5S"), arrival, departure))
     data = cursor.fetchall()
     cursor.close()
     return data
@@ -34,7 +34,7 @@ def home():
         destination = request.form.get('destination')
         date = request.form.get('date')
 
-        data = executeSearchQuery(source, destination)
+        data = executeSearchQuery(destination, source)
         if not data:
             flash("No flights found!", category='error')
             return redirect(url_for('views.home'))
@@ -48,8 +48,8 @@ def home():
 def view_flights():
     if session['user'] and session['customerOrStaff'] == 'customer':
         cursor = conn.cursor()
-        query = 'SELECT DISTINCT flight_number, flight_status, arrival_airport, departure_airport, ticket_id FROM tickets NATURAL JOIN flights WHERE email = %s'
-        cursor.execute(query, (session['user']))
+        query = 'SELECT DISTINCT flight_number, flight_status, arrival_airport, departure_airport, ticket_id FROM tickets NATURAL JOIN flights NATURAL JOIN departs WHERE email = %s and %s < date and %s < time'
+        cursor.execute(query, (session['user'], datetime.today(), datetime.now().strftime("%H:%M:%S")))
         data = cursor.fetchall()
         if not data:
             flash("No flights found!", category='error')
@@ -396,7 +396,24 @@ def staff_view_flight_ratings():
 
 @views.route('/staff_view_frequent_customers', methods=['GET', 'POST'])
 def view_frequent_customers():
-    return render_template('home.html', user=session, search=None)
+    if session['user'] and session['customerOrStaff'] == 'staff':
+        cursor = conn.cursor()
+        query = 'SELECT email, COUNT(email) as tickets_bought FROM tickets WHERE YEAR(date_time) = YEAR(CURDATE()) GROUP BY 1 ORDER BY tickets_bought DESC LIMIT 1'
+        cursor.execute(query)
+        data = cursor.fetchone()
+        cursor.close()
+        if request.method == "POST":
+            email = request.form.get('email')
+            cursor = conn.cursor()
+            query = 'SELECT * FROM flights WHERE flights.flight_number = (SELECT flights.flight_number FROM flights, tickets WHERE flights.flight_number = tickets.flight_number AND tickets.email = %s AND tickets.airline = (SELECT airline_name FROM staff WHERE %s = username))'
+            cursor.execute(query, (email, session['user']))
+            flights = cursor.fetchall()
+            if not flights:
+                flash("No flights found for this customer", category='error')
+            else:
+                return render_template('customerFlights.html', email=email, data=flights)
+        return render_template('frequentCustomer.html', data=data)
+    return redirect(url_for('views.home'))
 
 
 @views.route('/staff_view_reports', methods=['GET', 'POST'])

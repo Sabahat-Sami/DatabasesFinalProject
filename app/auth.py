@@ -24,7 +24,7 @@ def customerLogin():
             session['customerOrStaff'] = 'customer'
             return redirect(url_for('views.home'))
         else:
-            flash('Email does not exist.', category='error')
+            flash('Incorrect email or password.', category='error')
     return render_template('customerLogin.html')
 
 @auth.route('staff-login', methods=["GET", "POST"])

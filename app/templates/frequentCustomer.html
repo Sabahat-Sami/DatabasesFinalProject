@@ -1,0 +1,12 @@
+{% extends "base.html" %} {% block title %}<title>Purchase Flight</title>{% endblock %} {% block content
+    %}
+<div>
+    <h1>Most frequent customer: {{data}}</h1>
+</div>
+<form method="POST" id="purchaseFlight">
+    <input type="text" name="email" placeholder="Search customer email" required minlength="2"/>
+</br>
+    <input type="submit" value = "Search" />
+</form>
+
+{% endblock %}
