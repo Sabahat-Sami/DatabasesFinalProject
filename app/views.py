@@ -1,5 +1,5 @@
 from flask import Blueprint, render_template, request, flash, jsonify, redirect, url_for, session
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 from dateutil.relativedelta import relativedelta
 from app import conn
 
@@ -298,32 +298,87 @@ def track_spending():
 ####################################################################
 #----------------------------STAFF CASES------------------------------
 
-@views.route('/staff_manage_flights', methods=['GET', 'POST'])
+@views.route('/staff_manage_flights/', methods=['GET', 'POST'])
 def staff_manage_flights():
     if session['user'] and session['customerOrStaff'] == 'staff':
         if request.method == "POST":
             flight_number = request.form.get("flight_number")
             base_price = request.form.get("base_price")
             departure_airport = request.form.get("departure_airport")
+            departure_date = request.form.get("departure_date") + " 00:00:00"
+            departure_time = request.form.get("departure_time") + ':00'
             flight_status = request.form["status"]
             identification_number = request.form.get("identification_number")
             arrival_airport = request.form.get("arrival_airport")
+            arrival_date = request.form.get("arrival_date") + " 00:00:00"
+            arrival_time = request.form.get("arrival_time") + ':00'
+
+            try:
+                arrival = datetime.strptime(arrival_date, '%Y-%m-%d %H:%M:%S')
+                arrival_date2 = arrival.date()
+            except:
+                flash("date of birth must be in the format of YYYY-MM-DD", category="error")
+                return redirect(url_for('views.staff_manage_flights'))
+
+            try:
+                depart = datetime.strptime(departure_date, '%Y-%m-%d %H:%M:%S')
+                departure_date2 = depart.date()
+            except:
+                flash("date of birth must be in the format of YYYY-MM-DD", category="error")
+                return redirect(url_for('views.staff_manage_flights'))
 
             cursor = conn.cursor()
-            query = "INSERT INTO `flights` VALUES (%s, %s, %s, %s, %s, %s)"
-            print((int(flight_number), float(base_price), departure_airport, flight_status, int(identification_number), arrival_airport))
+            query = "INSERT INTO `flights` (`flight_number`, `base_price`, `departure_airport`, `flight_status`, `identification_number`, " \
+                    "`arrival_airport`) VALUES (%s, %s, %s, %s, %s, %s)"
             cursor.execute(query, (int(flight_number), float(base_price), departure_airport, flight_status, int(identification_number), arrival_airport))
+            conn.commit()
+
+            query = 'INSERT INTO `arrives` (`flight_number`, `name`, `date`, `time`) VALUES (%s, %s, %s, %s)'
+            cursor.execute(query, (int(flight_number), arrival_airport, arrival_date2, arrival_time))
+            conn.commit()
+
+            query = 'INSERT INTO `departs` (`flight_number`, `name`, `date`, `time`) VALUES (%s, %s, %s, %s)'
+            cursor.execute(query, (int(flight_number), departure_airport, departure_date2, departure_time))
             conn.commit()
             cursor.close()
 
+
         # pass all flights of airline staff works for
+        # cursor = conn.cursor()
+        # query = 'SELECT DISTINCT * FROM flights WHERE flights.identification_number in (select identification_number from owns where name=%s);'
+        # cursor.execute(query, (session['staff_airline']))
+        # data = cursor.fetchall()
+        # if not data:
+        #     flash("No flights found!", category='error')
+        #     return redirect(url_for('views.home'))
+
         cursor = conn.cursor()
-        query = 'SELECT DISTINCT * FROM flights WHERE flights.identification_number in (select identification_number from owns where name=%s);'
+
+        query = 'SELECT * FROM flights natural join arrives WHERE flights.identification_number in ' \
+                '(select identification_number from owns where name=%s);'
         cursor.execute(query, (session['staff_airline']))
-        data = cursor.fetchall()
-        if not data:
-            flash("No flights found!", category='error')
-            return redirect(url_for('views.home'))
+        flights = cursor.fetchall()
+
+        data = []
+        added_so_far = []
+        curr_date = date.today()
+        for i in range(len(flights)):
+            print(flights[i])
+            if curr_date <= flights[i]['date'] <= curr_date + timedelta(days=30):
+                data.append(flights[i])
+                added_so_far.append(flights[i]['flight_number'])
+
+        query = 'SELECT * FROM flights natural join departs WHERE flights.identification_number in ' \
+                '(select identification_number from owns where name=%s);'
+        cursor.execute(query, (session['staff_airline']))
+        flights = cursor.fetchall()
+        curr_date = date.today()
+        for i in range(len(flights)):
+            if flights[i]['flight_number'] not in added_so_far:
+                if curr_date <= flights[i]['date'] <= curr_date + timedelta(days=30):
+                    data.append(flights[i])
+                    added_so_far.append(flights[i]['flight_number'])
+        print(added_so_far)
         cursor.close()
         return render_template('staff_manage_flights.html', user=session, flights=data)
 

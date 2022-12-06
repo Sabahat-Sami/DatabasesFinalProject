@@ -5,7 +5,7 @@
             {% for flight in flights %}
                 <li>
                 <p>{{ flight }}
-                <a href='/staff_manage_flights/change_flight_status/{{ flight.flight_number }}'>Change Status</a>
+                <a href='/staff_manage_flights/change_flight_status/'>Change Status</a>
                 </p>
                 </li>
             {% endfor %}
@@ -18,9 +18,17 @@
     </br>
     <input type="text" id="departure_airport" name="departure_airport" placeholder="departure airport" required/>
     </br>
+    <input type="text" id="departure_date" name="departure_date" placeholder="departure date(YYYY-MM-DD)" required/>
+    </br>
+    <input type="text" id="departure_time" name="departure_time" placeholder="departure time(HH:MM)" required/>
+    </br>
     <input type="text" id="identification_number" name="identification_number" placeholder="identification number" required/>
     </br>
     <input type="text" id="arrival_airport" name="arrival_airport" placeholder="arrival airport" required/>
+    </br>
+    <input type="text" id="arrival_date" name="arrival_date" placeholder="arrival date(YYYY-MM-DD)" required/>
+    </br>
+    <input type="text" id="arrival_time" name="arrival_time" placeholder="arrival time(HH:MM)" required/>
     </br>
     <input type="radio" name="status" value="On Time">On Time<br>
     <input type="radio" name="status" value="Delayed" checked>Delayed<br>
