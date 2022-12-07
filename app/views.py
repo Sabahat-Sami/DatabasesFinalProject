@@ -247,13 +247,13 @@ def track_spending():
             elif date_time > six_months_ago:
                 spent_five_months_ago += sold_price
         track_this_year = "$" + str(spent_this_year)
-        track_this_month = "$" + str(spent_this_month)
-        track_one_month_ago = "$" + str(spent_one_month_ago)
-        track_two_months_ago = "$" + str(spent_two_months_ago)
-        track_three_months_ago = "$" + str(spent_three_months_ago)
-        track_four_months_ago = "$" + str(spent_four_months_ago)
-        track_five_months_ago = "$" + str(spent_five_months_ago)
-        track_spent = "$" + str(spent_this_year)
+        track_this_month = spent_this_month
+        track_one_month_ago = spent_one_month_ago
+        track_two_months_ago = spent_two_months_ago
+        track_three_months_ago = spent_three_months_ago
+        track_four_months_ago = spent_four_months_ago
+        track_five_months_ago = spent_five_months_ago
+        track_spent = spent_this_year
         if request.method == "POST":
             start_date = request.form.get("start_date_range")
             end_date = request.form.get("end_date_range")
