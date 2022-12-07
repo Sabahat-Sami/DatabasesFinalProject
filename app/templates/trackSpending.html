@@ -6,51 +6,45 @@
     <script src='trackSpending.js'></script>
 </head>
 
+
 <div>
     <h1>Total Spend in the last year: {{data_1}}</h1>
 </div>
 
-  <body>
-    <div id="container" style="width: 50%; height: 50%"></div>
-    <script type="text/javascript" src="trackSpending.js"></script>
-    <script type="text/javascript">
-      anychart.onDocumentReady(function() {
-        // set the data
-        // spending_1 = myFunc({{ month_1 | tojson }});
-        var spending_1 = "{{ month_1 }}";
-        var spending_2 = "{{ month_2 }}";
-        var spending_3 = "{{ month_3 }}";
-        var spending_4 = "{{ month_4 }}";
-        var spending_5 = "{{ month_5 }}";
-        var spending_6 = "{{ month_6 }}";
-        // spending_1 = 1500
-        // spending_2 = 1500
-        // spending_3 = 1500
-        // spending_4 = 1500
-        // spending_5 = 24200
-        // spending_6 = 1500
-        var data = {
-            header: ["Month", "Spent"],
-            rows: [
-              ["This Month", spending_1],
-              ["Last Month", spending_2],
-              ["Two Months Ago", spending_3],
-              ["Three Months Ago", spending_4],
-              ["Four Months Ago", spending_5],
-              ["Five Months Ago", spending_6],
-        ]};
-        // create the chart
-        var chart = anychart.bar();
-        // add the data
-        chart.data(data);
-        // set the chart title
-        chart.title("Spending in last 6 months");
-        // draw
-        chart.container("container");
-        chart.draw();
-      });
-    </script>
-  </body>
+
+<body>
+  <div id="container" style="width: 75%; height: 75%"></div>
+  <script>
+    anychart.onDocumentReady(function() {
+      var spending_1 = "{{ month_1 }}";
+      var spending_2 = "{{ month_2 }}";
+      var spending_3 = "{{ month_3 }}";
+      var spending_4 = "{{ month_4 }}";
+      var spending_5 = "{{ month_5 }}";
+      var spending_6 = "{{ month_6 }}";
+      var data = {
+          header: ["Month", "Spent"],
+          rows: [
+            ["This Month", spending_1],
+            ["Last Month", spending_2],
+            ["Two Months Ago", spending_3],
+            ["Three Months Ago", spending_4],
+            ["Four Months Ago", spending_5],
+            ["Five Months Ago", spending_6],
+      ]};
+      // create the chart
+      var chart = anychart.bar();
+      // add the data
+      chart.data(data);
+      // set the chart title
+      chart.title("Spending in last 6 months");
+      // draw
+      chart.container("container");
+      chart.draw();
+    });
+  </script>
+</body>
+
 
 <form method="POST" id="trackSpending">
     <input type="text" name="start_date_range" placeholder="Start of my range" required minlength="2"/>
@@ -64,5 +58,39 @@
 <div>
     <h2>Total Spend in the selected range: {{data_2}}</h1>
 </div>
+
+
+<div id="container2" style="width: 50%; height: 50%"></div>
+<script>
+  anychart.onDocumentReady(function() {
+    var spendings = "{{ range_spending_list }}";
+    var spendings = JSON.parse("["+spendings+"]");
+    lissy = []
+    temp = ""
+    for (let i = 0; i < spendings[0].length; i++) {
+      lissy.push(spendings[0][i])
+    }
+    spendings = lissy
+    var month_num= 1;
+    var string_month_ago = " Month Ago";
+    var data = {
+        header: ["Month", "Spent"],
+        rows: []
+    };
+    spendings.forEach(function(spendings) {
+      data["rows"].push([String(month_num)+ string_month_ago, String(spendings)])
+      month_num += 1
+    });  
+    // create the chart
+    var chart = anychart.bar();
+    // add the data
+    chart.data(data);
+    // set the chart title
+    chart.title("Month Wise Spending for the Selected Range");
+    // draw
+    chart.container("container2");
+    chart.draw();
+  });
+</script>
 
 {% endblock %}

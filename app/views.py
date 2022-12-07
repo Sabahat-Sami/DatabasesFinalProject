@@ -282,7 +282,6 @@ def track_spending():
             for sold_price in data2:
                 spent += sold_price
             track_spent = "$" + str(spent)
-        # return render_template('trackSpending.html', data_1 = track_this_year, data_2 = track_spent)
         return render_template('trackSpending.html',
                                 data_1=track_this_year,
                                 month_1=track_this_month,
@@ -291,6 +290,7 @@ def track_spending():
                                 month_4=track_three_months_ago,
                                 month_5=track_four_months_ago,
                                 month_6=track_five_months_ago,
+                                range_spending_list = [5000, 6000, 7000],
                                 data_2 = track_spent)
     return redirect(url_for('views.home'))
 
