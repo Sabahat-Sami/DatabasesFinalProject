@@ -528,16 +528,81 @@ def view_frequent_customers():
     return redirect(url_for('views.home'))
 
 
+
+
 @views.route('/staff_view_reports', methods=['GET', 'POST'])
 def view_reports():
-    return render_template('home.html', user=session, search=None)
+    if session['user'] and session['customerOrStaff'] == 'staff':
+        cursor = conn.cursor()
+        query = 'SELECT sold_price, date_time FROM tickets'
+        cursor.execute(query)
+        data = cursor.fetchall()
+        if not data:
+            flash("No tickets were bought", category='error')
+            return redirect(url_for('views.home'))
+        cursor.close()
+        total_tickets = 0
+        for flight in data:
+            total_tickets += 1
+        if request.method == "POST":
+            start_date = request.form.get("start_date_range")
+            end_date = request.form.get("end_date_range")
+            try:
+                start_date += " 00:00:00"
+                start_date = datetime.strptime(start_date, '%Y-%m-%d %H:%M:%S')
+            except:
+                flash("start date range must be in the format of YYYY-MM-DD", category="error")
+                return render_template('trackSpending.html')
+            try:
+                end_date += " 00:00:00"
+                end_date = datetime.strptime(end_date, '%Y-%m-%d %H:%M:%S')
+            except:
+                flash("end date range must be in the format of YYYY-MM-DD", category="error")
+                return render_template('trackSpending.html')
+            if start_date > end_date:
+                flash("start date cannot be after end date", category="error")
+                return render_template('trackSpending.html')
+            cursor = conn.cursor()
+            query2 = 'SELECT sold_price, date_time FROM tickets where date_time > %s and date_time < %s'
+            cursor.execute(query2, (start_date, end_date))
+            data2 = cursor.fetchall()
+            if not data2:
+                flash("No tickets were bought in the range selected", category='error')
+                return redirect(url_for('views.home'))
+            cursor.close()
+            bought_in_range = 0
+            for flight in data2:
+                bought_in_range += 1
+            monthly_spending = []
+            last_month = end_date - relativedelta(months=1)
+            counter = 0
+            while last_month > start_date:
+                counter += 1
+                temp = 0
+                cursor = conn.cursor()
+                query3 = 'SELECT sold_price, date_time FROM tickets where date_time > %s and date_time < %s'
+                cursor.execute(query3, (last_month, last_month+relativedelta(months=1)))
+                data3 = cursor.fetchall()
+                for flight in data3:
+                    temp += 1
+                monthly_spending.append(temp)
+                last_month -= relativedelta(months=1)
+            if counter == 0:
+                monthly_spending.append(bought_in_range)
+        else:
+            bought_in_range = 0
+            monthly_spending = []
+        return render_template('staff_view_reports.html',
+                                data_1 = total_tickets,
+                                data_2 = bought_in_range,
+                                range_spending_list = monthly_spending
+                                )
+    return redirect(url_for('views.home'))
 
 
-@views.route('/view_revenue', methods=['GET', 'POST'])
-def view_revenue():
-    return render_template('home.html', user=session, search=None)
 
-@views.route('/viewEarnedRevenue', methods=['GET'])
+
+@views.route('/staff_view_earned_revenue', methods=['GET'])
 def view_earned_revenue():
     if session['user'] and session['customerOrStaff'] == 'staff':
         cursor = conn.cursor()
@@ -561,7 +626,7 @@ def view_earned_revenue():
             spent_year += sold_price
         output_str_month_spent = "$" + str(spent_month)
         output_str_year_spent = "$" + str(spent_year)
-        return render_template('viewEarnedRevenue.html',
+        return render_template('staff_view_earned_revenue.html',
                                 data_month = output_str_month_spent,
                                 data_year = output_str_year_spent
                                 )

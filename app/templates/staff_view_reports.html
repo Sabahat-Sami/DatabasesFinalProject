@@ -1,0 +1,60 @@
+{% extends "base.html" %} {% block title %}<title>Staff View Reports</title>{% endblock %} {% block content
+    %}
+
+    <head>
+        <script src="https://cdn.anychart.com/releases/8.0.0/js/anychart-base.min.js"></script>
+    </head>
+    
+    <div>
+        <h1>Total Amount of Tickets Sold: {{data_1}}</h1>
+    </div>
+    
+    <form method="POST" id="trackSpending">
+        <input type="text" name="start_date_range" placeholder="Start of my range" required minlength="2"/>
+        </br> 
+        <input type="text" name="end_date_range" placeholder="End of my range" required minlength="2"/>
+        </br> 
+        <input type="submit" value = "Track Spending" />
+    </form>
+
+    <div>
+        <h3>Total Amount of Tickets Sold in Selected Range: {{data_2}}</h3>
+    </div>
+
+
+    <div id="container2" style="width: 90%; height: 90%"></div>
+    <script>
+    anychart.onDocumentReady(function() {
+        var spendings = "{{ range_spending_list }}";
+        var spendings = JSON.parse("["+spendings+"]");
+        lissy = []
+        temp = ""
+        for (let i = 0; i < spendings[0].length; i++) {
+        lissy.push(spendings[0][i])
+        }
+        spendings = lissy
+        var time_num= 1;
+        var string_time_ago = " Month Ago";
+        var data = {
+            header: ["Month/Year", "Tickets Bought"],
+            rows: []
+        };
+        spendings.forEach(function(spendings) {
+        data["rows"].push([String(time_num)+ string_time_ago, String(spendings)])
+        time_num += 1
+        });  
+        console.log(data)
+        // create the chart
+        var chart = anychart.bar();
+        // add the data
+        chart.data(data);
+        // set the chart title
+        chart.title("Month/Year Wise Tickets Bought for the Selected Range");
+        // draw
+        chart.container("container2");
+        chart.draw();
+    });
+    </script>
+
+
+{% endblock %}
