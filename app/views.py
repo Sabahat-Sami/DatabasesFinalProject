@@ -253,22 +253,24 @@ def track_spending():
             elif date_time > six_months_ago:
                 spent_five_months_ago += sold_price
         track_this_year = "$" + str(spent_this_year)
-        track_this_month = "$" + str(spent_this_month)
-        track_one_month_ago = "$" + str(spent_one_month_ago)
-        track_two_months_ago = "$" + str(spent_two_months_ago)
-        track_three_months_ago = "$" + str(spent_three_months_ago)
-        track_four_months_ago = "$" + str(spent_four_months_ago)
-        track_five_months_ago = "$" + str(spent_five_months_ago)
-        track_spent = "$" + str(spent_this_year)
+        track_this_month = spent_this_month
+        track_one_month_ago = spent_one_month_ago
+        track_two_months_ago = spent_two_months_ago
+        track_three_months_ago = spent_three_months_ago
+        track_four_months_ago = spent_four_months_ago
+        track_five_months_ago = spent_five_months_ago
+        track_spent = spent_this_year
         if request.method == "POST":
             start_date = request.form.get("start_date_range")
             end_date = request.form.get("end_date_range")
             try:
+                start_date += " 00:00:00"
                 start_date = datetime.strptime(start_date, '%Y-%m-%d %H:%M:%S')
             except:
                 flash("start date range must be in the format of YYYY-MM-DD", category="error")
                 return render_template('trackSpending.html')
             try:
+                end_date += " 00:00:00"
                 end_date = datetime.strptime(end_date, '%Y-%m-%d %H:%M:%S')
             except:
                 flash("end date range must be in the format of YYYY-MM-DD", category="error")
@@ -277,17 +279,37 @@ def track_spending():
                 flash("start date cannot be after end date", category="error")
                 return render_template('trackSpending.html')
             cursor = conn.cursor()
-            query2 = 'SELECT sold_price FROM tickets where date_time > %s and date_time < %s'
-            cursor.execute(query2, (start_date, end_date))
-            data2 = cursor.fetchone()
+            query2 = 'SELECT sold_price, date_time FROM tickets where date_time > %s and date_time < %s and email = %s'
+            cursor.execute(query2, (start_date, end_date, session['user']))
+            data2 = cursor.fetchall()
             if not data:
                 flash("No tickets were bought in the range selected", category='error')
                 return redirect(url_for('views.home'))
             cursor.close()
             spent = 0
-            for sold_price in data2:
+            for flight in data2:
+                sold_price = flight['sold_price']
                 spent += sold_price
             track_spent = "$" + str(spent)
+            monthly_spending = []
+            last_month = end_date - relativedelta(months=1)
+            counter = 0
+            while last_month > start_date:
+                counter += 1
+                temp = 0
+                cursor = conn.cursor()
+                query3 = 'SELECT sold_price, date_time FROM tickets where date_time > %s and date_time < %s and email = %s'
+                cursor.execute(query3, (last_month, last_month+relativedelta(months=1), session['user']))
+                data3 = cursor.fetchall()
+                for flight in data3:
+                    sold_price = flight['sold_price']
+                    temp += sold_price
+                monthly_spending.append(temp)
+                last_month -= relativedelta(months=1)
+            if counter == 0:
+                monthly_spending.append(spent)
+        else:
+            monthly_spending =[]
         # return render_template('trackSpending.html', data_1 = track_this_year, data_2 = track_spent)
         return render_template('trackSpending.html',
                                 data_1=track_this_year,
@@ -297,7 +319,9 @@ def track_spending():
                                 month_4=track_three_months_ago,
                                 month_5=track_four_months_ago,
                                 month_6=track_five_months_ago,
-                                data_2 = track_spent)
+                                range_spending_list = monthly_spending,
+                                data_2 = track_spent
+                                )
     return redirect(url_for('views.home'))
 
 
@@ -513,9 +537,100 @@ def view_frequent_customers():
 
 @views.route('/staff_view_reports', methods=['GET', 'POST'])
 def view_reports():
-    return render_template('home.html', user=session, search=None)
+    if session['user'] and session['customerOrStaff'] == 'staff':
+        cursor = conn.cursor()
+        query = 'SELECT sold_price, date_time FROM tickets'
+        cursor.execute(query)
+        data = cursor.fetchall()
+        if not data:
+            flash("No tickets were bought", category='error')
+            return redirect(url_for('views.home'))
+        cursor.close()
+        total_tickets = 0
+        for flight in data:
+            total_tickets += 1
+        if request.method == "POST":
+            start_date = request.form.get("start_date_range")
+            end_date = request.form.get("end_date_range")
+            try:
+                start_date += " 00:00:00"
+                start_date = datetime.strptime(start_date, '%Y-%m-%d %H:%M:%S')
+            except:
+                flash("start date range must be in the format of YYYY-MM-DD", category="error")
+                return render_template('trackSpending.html')
+            try:
+                end_date += " 00:00:00"
+                end_date = datetime.strptime(end_date, '%Y-%m-%d %H:%M:%S')
+            except:
+                flash("end date range must be in the format of YYYY-MM-DD", category="error")
+                return render_template('trackSpending.html')
+            if start_date > end_date:
+                flash("start date cannot be after end date", category="error")
+                return render_template('trackSpending.html')
+            cursor = conn.cursor()
+            query2 = 'SELECT sold_price, date_time FROM tickets where date_time > %s and date_time < %s'
+            cursor.execute(query2, (start_date, end_date))
+            data2 = cursor.fetchall()
+            if not data2:
+                flash("No tickets were bought in the range selected", category='error')
+                return redirect(url_for('views.home'))
+            cursor.close()
+            bought_in_range = 0
+            for flight in data2:
+                bought_in_range += 1
+            monthly_spending = []
+            last_month = end_date - relativedelta(months=1)
+            counter = 0
+            while last_month > start_date:
+                counter += 1
+                temp = 0
+                cursor = conn.cursor()
+                query3 = 'SELECT sold_price, date_time FROM tickets where date_time > %s and date_time < %s'
+                cursor.execute(query3, (last_month, last_month+relativedelta(months=1)))
+                data3 = cursor.fetchall()
+                for flight in data3:
+                    temp += 1
+                monthly_spending.append(temp)
+                last_month -= relativedelta(months=1)
+            if counter == 0:
+                monthly_spending.append(bought_in_range)
+        else:
+            bought_in_range = 0
+            monthly_spending = []
+        return render_template('staff_view_reports.html',
+                                data_1 = total_tickets,
+                                data_2 = bought_in_range,
+                                range_spending_list = monthly_spending
+                                )
+    return redirect(url_for('views.home'))
 
 
-@views.route('/view_revenue', methods=['GET', 'POST'])
-def view_revenue():
-    return render_template('home.html', user=session, search=None)
+@views.route('/staff_view_earned_revenue', methods=['GET'])
+def view_earned_revenue():
+    if session['user'] and session['customerOrStaff'] == 'staff':
+        cursor = conn.cursor()
+        query = 'SELECT sold_price, date_time FROM tickets where date_time >= %s'
+        today = datetime.now()
+        month_ago = datetime.now() - relativedelta(months=1)
+        one_year_ago = datetime.now() - relativedelta(years=1)
+        cursor.execute(query, (one_year_ago))
+        data = cursor.fetchall()
+        if not data:
+            flash("No tickets were bought in the last year", category='error')
+            return redirect(url_for('views.home'))
+        cursor.close()
+        spent_month = 0
+        spent_year = 0
+        for flight in data:
+            sold_price = flight['sold_price']
+            date_time = flight['date_time']
+            if date_time > month_ago:
+                spent_month += sold_price
+            spent_year += sold_price
+        output_str_month_spent = "$" + str(spent_month)
+        output_str_year_spent = "$" + str(spent_year)
+        return render_template('staff_view_earned_revenue.html',
+                                data_month = output_str_month_spent,
+                                data_year = output_str_year_spent
+                                )
+    return redirect(url_for('views.home'))
