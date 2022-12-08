@@ -20,7 +20,6 @@ def executeSearchQuery(arrival, departure, date, departOrArrive):
     elif arrival != "" and departure != "" and date == "":
         query = 'SELECT flights.flight_number, flights.base_price, flights.departure_airport, flights.arrival_airport, departs.date, departs.time, arrives.date, arrives.time FROM flights, departs, arrives WHERE flights.flight_number = departs.flight_number = arrives.flight_number AND %s < departs.date AND %s < departs.time AND arrival_airport=%s AND departure_airport=%s'
         cursor.execute(query, (datetime.today(), datetime.now().strftime("%H:%M:5S"),arrival, departure))
-
     elif departOrArrive == "Departing":
         date += " 00:00:00"
         date_time = datetime.strptime(date, '%Y-%m-%d %H:%M:%S')
@@ -312,6 +311,7 @@ def track_spending():
                                 month_4=track_three_months_ago,
                                 month_5=track_four_months_ago,
                                 month_6=track_five_months_ago,
+                    
                                 range_spending_list = monthly_spending,
                                 data_2 = track_spent
                                 )
@@ -536,3 +536,33 @@ def view_reports():
 @views.route('/view_revenue', methods=['GET', 'POST'])
 def view_revenue():
     return render_template('home.html', user=session, search=None)
+
+@views.route('/viewEarnedRevenue', methods=['GET'])
+def view_earned_revenue():
+    if session['user'] and session['customerOrStaff'] == 'staff':
+        cursor = conn.cursor()
+        query = 'SELECT sold_price, date_time FROM tickets where date_time >= %s'
+        today = datetime.now()
+        month_ago = datetime.now() - relativedelta(months=1)
+        one_year_ago = datetime.now() - relativedelta(years=1)
+        cursor.execute(query, (one_year_ago))
+        data = cursor.fetchall()
+        if not data:
+            flash("No tickets were bought in the last year", category='error')
+            return redirect(url_for('views.home'))
+        cursor.close()
+        spent_month = 0
+        spent_year = 0
+        for flight in data:
+            sold_price = flight['sold_price']
+            date_time = flight['date_time']
+            if date_time > month_ago:
+                spent_month += sold_price
+            spent_year += sold_price
+        output_str_month_spent = "$" + str(spent_month)
+        output_str_year_spent = "$" + str(spent_year)
+        return render_template('viewEarnedRevenue.html',
+                                data_month = output_str_month_spent,
+                                data_year = output_str_year_spent
+                                )
+    return redirect(url_for('views.home'))
