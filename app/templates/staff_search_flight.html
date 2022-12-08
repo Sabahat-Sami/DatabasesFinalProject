@@ -1,10 +1,7 @@
 {% extends "base.html" %} {% block title %}<title>Home</title>{% endblock %} {% block content
 %}
     <br>
-{% if session.customerOrStaff == 'staff' %}
-    <h1 align="center">Logged In As Staff {{ session.username }}</h1>
-{% else %}
-    {% if data == None %}
+{% if data == None %}
     <h1 align="center">WELCOME :)</h1>
     <form method="POST">
       <div class="form-group">
@@ -57,6 +54,4 @@
         </div>
     {% endfor %}
 {% endif %}
-{% endif %}
-
 {% endblock %}

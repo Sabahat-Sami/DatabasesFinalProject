@@ -1,6 +1,12 @@
 {% extends "base.html" %} {% block title %}<title>Staff Register</title>{% endblock %} {% block content
     %}
 
+
+    {% if time_range == '30' %}
+        <h3>Next 30 Days</h3>
+    {% elif time_range == '365'%}
+        <h3>All Flights</h3>
+    {% endif %}
     <ul>
             {% for flight in flights %}
                 <li>
@@ -10,6 +16,22 @@
                 </li>
             {% endfor %}
     </ul>
+
+    <br>
+    <br>
+
+    {% if time_range == '30' %}
+        <a class="nav-item nav-link" id="home" href='/staff_manage_flights/{{ 365 }}'>Manage All Flights</a>
+        <a class="nav-item nav-link" id="home" href='/staff_manage_flights/{{ 0 }}'>Pick Specific Time</a>
+    {% elif time_range == '365'%}
+        <a class="nav-item nav-link" id="home" href='/staff_manage_flights/{{ 30 }}'>Manage Next 30 Days Flights</a>
+        <a class="nav-item nav-link" id="home" href='/staff_manage_flights/{{ 0 }}'>Pick Specific Time</a>
+    {% endif %}
+
+
+    <br>
+    <br>
+
 
 <form method="POST" id="registerForm">
     <input type="text" id="flight_number" name="flight_number" m placeholder="flight number" required/>

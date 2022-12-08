@@ -35,16 +35,17 @@
         <div class="navbar-nav">
           {% if session.user %}
               <a class="nav-item nav-link" id="home" href="/">Home</a>
-              <a class="nav-item nav-link" id="home" href="/view_flights">View Flights</a>
-              <a class="nav-item nav-link" id="home" href="/trackSpending">Track Spending</a>
               {% if session.customerOrStaff == 'staff' %}
-                <a class="nav-item nav-link" id="home" href='/staff_manage_flights'>Manage Flights</a>
+                <a class="nav-item nav-link" id="home" href='/staff_manage_flights/{{ 30 }}'>Manage Flights</a>
                 <a class="nav-item nav-link" id="home" href='/staff_manage_airplane'>Manage Airplanes</a>
                 <a class="nav-item nav-link" id="home" href='/staff_manage_airports'>Manage Airports</a>
                 <a class="nav-item nav-link" id="home" href='/staff_view_flight_ratings'>View Ratings</a>
                 <a class="nav-item nav-link" id="home" href='/staff_view_frequent_customers'>View most frequent customer</a>
                 <a class="nav-item nav-link" id="home" href="/staff_view_reports">View Reports</a>
                 <a class="nav-item nav-link" id="home" href="/staff_view_earned_revenue">View Revenue</a>
+              {% else %}
+                  <a class="nav-item nav-link" id="home" href="/view_flights">View Flights</a>
+                <a class="nav-item nav-link" id="home" href="/trackSpending">Track Spending</a>
               {% endif %}
               <a class="nav-item nav-link" id="logout" href="/logout">Logout</a>
           {% else %}
