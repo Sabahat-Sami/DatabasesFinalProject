@@ -84,8 +84,8 @@ def home():
 def view_flights():
     if session['user'] and session['customerOrStaff'] == 'customer':
         cursor = conn.cursor()
-        query = 'SELECT DISTINCT flight_number, flight_status, arrival_airport, departure_airport, ticket_id FROM tickets NATURAL JOIN flights NATURAL JOIN departs WHERE email = %s and %s < date and %s < time'
-        cursor.execute(query, (session['user'], datetime.today(), datetime.now().strftime("%H:%M:%S")))
+        query = 'SELECT DISTINCT flight_number, flight_status, arrival_airport, departure_airport, ticket_id FROM tickets NATURAL JOIN flights NATURAL JOIN departs WHERE email = %s and %s < date'
+        cursor.execute(query, (session['user'], datetime.today()))
         data = cursor.fetchall()
         if not data:
             flash("No flights found!", category='error')
@@ -144,6 +144,7 @@ def rate_flight(flight_number):
     if session['user'] and session['customerOrStaff'] == 'customer':
         if datetime.now() < date_time:
             flash("Can't rate flights you haven't flown yet", category="error")
+            return redirect(url_for('views.view_flights'))
         elif request.method == 'POST':
             rate = request.form.get("rate")
             comment = request.form.get("comment")
