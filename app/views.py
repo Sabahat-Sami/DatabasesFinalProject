@@ -66,7 +66,6 @@ def executeSearchQuery(arrival, departure, date, departOrArrive):
 def home():
     if request.method == "POST":
         source = request.form.get('source')
-        print('source: ',source)
         destination = request.form.get('destination')
         date = request.form.get('date')
         departOrArrive = request.form.get("departOrArrive")
@@ -328,10 +327,25 @@ def track_spending():
 ####################################################################
 #----------------------------STAFF CASES------------------------------
 
-@views.route('/staff_manage_flights/', methods=['GET', 'POST'])
-def staff_manage_flights():
+@views.route('/staff_manage_flights/<time_range>', methods=['GET', 'POST'])
+def staff_manage_flights(time_range):
     if session['user'] and session['customerOrStaff'] == 'staff':
         if request.method == "POST":
+            if time_range == '0':
+                if request.method == "POST":
+                    source = request.form.get('source')
+                    destination = request.form.get('destination')
+                    date_ = request.form.get('date')
+                    departOrArrive = request.form.get("departOrArrive")
+                    data = executeSearchQuery(destination, source, date_, departOrArrive)
+                    if not data:
+                        flash("No flights found!", category='error')
+                        return redirect(url_for('views.home'))
+                    # urls = [f'purchase_flight/' + str(flight['flight_number']) for flight in data]
+                    return render_template('staff_manage_flights.html', user=session, flights=data,
+                                           time_range=time_range)
+
+
             flight_number = request.form.get("flight_number")
             base_price = request.form.get("base_price")
             departure_airport = request.form.get("departure_airport")
@@ -373,44 +387,50 @@ def staff_manage_flights():
             cursor.close()
 
 
-        # pass all flights of airline staff works for
-        # cursor = conn.cursor()
-        # query = 'SELECT DISTINCT * FROM flights WHERE flights.identification_number in (select identification_number from owns where name=%s);'
-        # cursor.execute(query, (session['staff_airline']))
-        # data = cursor.fetchall()
-        # if not data:
-        #     flash("No flights found!", category='error')
-        #     return redirect(url_for('views.home'))
+        if time_range == '30':
+            cursor = conn.cursor()
+            query = 'SELECT * FROM flights natural join arrives WHERE flights.identification_number in ' \
+                    '(select identification_number from owns where name=%s);'
+            cursor.execute(query, (session['staff_airline']))
+            flights = cursor.fetchall()
 
-        cursor = conn.cursor()
-
-        query = 'SELECT * FROM flights natural join arrives WHERE flights.identification_number in ' \
-                '(select identification_number from owns where name=%s);'
-        cursor.execute(query, (session['staff_airline']))
-        flights = cursor.fetchall()
-
-        data = []
-        added_so_far = []
-        curr_date = date.today()
-        for i in range(len(flights)):
-            print(flights[i])
-            if curr_date <= flights[i]['date'] <= curr_date + timedelta(days=30):
-                data.append(flights[i])
-                added_so_far.append(flights[i]['flight_number'])
-
-        query = 'SELECT * FROM flights natural join departs WHERE flights.identification_number in ' \
-                '(select identification_number from owns where name=%s);'
-        cursor.execute(query, (session['staff_airline']))
-        flights = cursor.fetchall()
-        curr_date = date.today()
-        for i in range(len(flights)):
-            if flights[i]['flight_number'] not in added_so_far:
+            data = []
+            added_so_far = []
+            curr_date = date.today()
+            for i in range(len(flights)):
                 if curr_date <= flights[i]['date'] <= curr_date + timedelta(days=30):
                     data.append(flights[i])
                     added_so_far.append(flights[i]['flight_number'])
-        print(added_so_far)
-        cursor.close()
-        return render_template('staff_manage_flights.html', user=session, flights=data)
+
+
+            query = 'SELECT * FROM flights natural join departs WHERE flights.identification_number in ' \
+                    '(select identification_number from owns where name=%s);'
+            cursor.execute(query, (session['staff_airline']))
+            flights = cursor.fetchall()
+
+
+            curr_date = date.today()
+            for i in range(len(flights)):
+                if flights[i]['flight_number'] not in added_so_far:
+                    if curr_date <= flights[i]['date'] <= curr_date + timedelta(days=30):
+                        data.append(flights[i])
+                        added_so_far.append(flights[i]['flight_number'])
+            cursor.close()
+            return render_template('staff_manage_flights.html', user=session, flights=data, time_range=time_range)
+
+        elif time_range == '365':
+            cursor = conn.cursor()
+            query = 'SELECT DISTINCT * FROM flights WHERE flights.identification_number in (select identification_number from owns where name=%s);'
+            cursor.execute(query, (session['staff_airline']))
+            data = cursor.fetchall()
+            if not data:
+                flash("No flights found!", category='error')
+                return redirect(url_for('views.home'))
+
+            return render_template('staff_manage_flights.html', user=session, flights=data, time_range=time_range)
+
+        elif time_range == '0':
+            return render_template('staff_search_flight.html', user=session, data=None)
 
 
 @views.route('/staff_manage_flights/change_flight_status/<flight_number>', methods=['GET', 'POST'])
