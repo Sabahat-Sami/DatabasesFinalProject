@@ -13,18 +13,13 @@ def executeSearchQuery(arrival, departure, date, departOrArrive):
         cursor.execute(query, (datetime.today(), datetime.now().strftime("%H:%M:5S")))
     elif arrival != "" and departure == "" and date == "":
         query = 'SELECT flights.flight_number, flights.base_price, flights.departure_airport, flights.arrival_airport, departs.date, departs.time, arrives.date, arrives.time FROM flights, departs, arrives WHERE flights.flight_number = departs.flight_number = arrives.flight_number AND %s < departs.date AND %s < departs.time AND arrival_airport=%s'
-        cursor.execute(query, (datetime.today(), datetime.now().strftime("%H:%M:5S"), arrival))
+        cursor.execute(query, (datetime.today(), datetime.now().strftime("%H:%M:5S"),arrival))
     elif arrival == "" and departure != "" and date == "":
         query = 'SELECT flights.flight_number, flights.base_price, flights.departure_airport, flights.arrival_airport, departs.date, departs.time, arrives.date, arrives.time FROM flights, departs, arrives WHERE flights.flight_number = departs.flight_number = arrives.flight_number AND %s < departs.date AND %s < departs.time AND departure_airport=%s'
-        cursor.execute(query, (datetime.today(), datetime.now().strftime("%H:%M:5S"), departure))
+        cursor.execute(query, (datetime.today(), datetime.now().strftime("%H:%M:5S"),departure))
     elif arrival != "" and departure != "" and date == "":
         query = 'SELECT flights.flight_number, flights.base_price, flights.departure_airport, flights.arrival_airport, departs.date, departs.time, arrives.date, arrives.time FROM flights, departs, arrives WHERE flights.flight_number = departs.flight_number = arrives.flight_number AND %s < departs.date AND %s < departs.time AND arrival_airport=%s AND departure_airport=%s'
-<<<<<<< Updated upstream
         cursor.execute(query, (datetime.today(), datetime.now().strftime("%H:%M:5S"),arrival, departure))
-=======
-        cursor.execute(query, (datetime.today(), datetime.now().strftime("%H:%M:5S"), arrival, departure))
-
->>>>>>> Stashed changes
     elif departOrArrive == "Departing":
         date += " 00:00:00"
         date_time = datetime.strptime(date, '%Y-%m-%d %H:%M:%S')
@@ -48,7 +43,7 @@ def executeSearchQuery(arrival, departure, date, departOrArrive):
             cursor.execute(query, (date_time))
         elif arrival != "" and departure == "":
             query = 'SELECT flights.flight_number, flights.base_price, flights.departure_airport, flights.arrival_airport, departs.date, departs.time, arrives.date, arrives.time FROM flights, departs, arrives WHERE flights.flight_number = departs.flight_number = arrives.flight_number AND %s = arrives.date AND arrival_airport=%s'
-            cursor.execute(query, (date_time, arrival))
+            cursor.execute(query, (date_time, arrival))        
         elif arrival == "" and departure != "":
             query = 'SELECT flights.flight_number, flights.base_price, flights.departure_airport, flights.arrival_airport, departs.date, departs.time, arrives.date, arrives.time FROM flights, departs, arrives WHERE flights.flight_number = departs.flight_number = arrives.flight_number AND %s = arrives.date departure_airport=%s'
             cursor.execute(query, (date_time, departure))
@@ -65,7 +60,7 @@ def executeSearchQuery(arrival, departure, date, departOrArrive):
 def home():
     if request.method == "POST":
         source = request.form.get('source')
-        print('source: ', source)
+        print('source: ',source)
         destination = request.form.get('destination')
         date = request.form.get('date')
         departOrArrive = request.form.get("departOrArrive")
@@ -73,7 +68,7 @@ def home():
         if not data:
             flash("No flights found!", category='error')
             return redirect(url_for('views.home'))
-        urls = [f'purchase_flight/' + str(flight['flight_number']) for flight in data]
+        urls = [f'purchase_flight/'+str(flight['flight_number']) for flight in data]
         return render_template('home.html', user=session, data=zip(data, urls))
 
     return render_template('home.html', user=session, data=None)
@@ -90,7 +85,7 @@ def view_flights():
             flash("No flights found!", category='error')
             return redirect(url_for('views.home'))
         cursor.close()
-        urls = [f'flight_info/' + str(flight['ticket_id']) for flight in data]
+        urls = [f'flight_info/'+str(flight['ticket_id']) for flight in data]
         for flight in data:
             del flight['ticket_id']
         print(data)
@@ -108,7 +103,7 @@ def cancel_flight(ticket_id):
         flight_number = data['flight_number']
         departure_airport = data['departure_airport']
         cursor.close()
-        if request.method == "POST":
+        if request.method=="POST":
             if "go_back" in request.form:
                 return redirect(url_for('views.home'))
             if "cancel" in request.form:
@@ -130,7 +125,6 @@ def cancel_flight(ticket_id):
         del data['ticket_id']
         return render_template('flightInfo.html', flight=data)
     return redirect(url_for('views.home'))
-
 
 @views.route('flight_info/rate_flight/<flight_number>', methods=['GET', 'POST'])
 def rate_flight(flight_number):
@@ -156,7 +150,6 @@ def rate_flight(flight_number):
             return redirect(url_for('views.home'))
         return render_template('rateFlight.html')
     return redirect(url_for('views.home'))
-
 
 @views.route('/purchase_flight/<flight_number>', methods=['GET', 'POST'])
 def purchase_flight(flight_number):
@@ -193,7 +186,7 @@ def purchase_flight(flight_number):
             data = cursor.fetchone()
             query = "SELECt * FROM owns WHERE identification_number = %s"
             cursor.execute(query, (data['identification_number']))
-            airline = cursor.fetchone()['name']
+            airline= cursor.fetchone()['name']
             cursor.close()
             if credit_or_debit.lower() != "credit" and credit_or_debit.lower() != "debit":
                 print(credit_or_debit.lower())
@@ -201,10 +194,7 @@ def purchase_flight(flight_number):
             else:
                 cursor = conn.cursor()
                 query = "INSERT INTO `tickets` VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
-                cursor.execute(query, (
-                    new_id, float(sold_price.strip("$")), date_time_purchased, credit_expiration, name, credit_number,
-                    credit_or_debit, session['user'], data['flight_number'], data['flight_status'], airline,
-                    data['identification_number']))
+                cursor.execute(query, (new_id, float(sold_price.strip("$")), date_time_purchased, credit_expiration, name, credit_number, credit_or_debit, session['user'], data['flight_number'], data['flight_status'], airline, data['identification_number']))
                 conn.commit()
                 cursor.close()
                 flash('Flight purchased!', category='success')
@@ -314,7 +304,6 @@ def track_spending():
         else:
             monthly_spending =[]
         return render_template('trackSpending.html',
-<<<<<<< Updated upstream
                                 data_1=track_this_year,
                                 month_1=track_this_month,
                                 month_2=track_one_month_ago,
@@ -326,40 +315,16 @@ def track_spending():
                                 range_spending_list = monthly_spending,
                                 data_2 = track_spent
                                 )
-=======
-                               data_1=track_this_year,
-                               month_1=track_this_month,
-                               month_2=track_one_month_ago,
-                               month_3=track_two_months_ago,
-                               month_4=track_three_months_ago,
-                               month_5=track_four_months_ago,
-                               month_6=track_five_months_ago,
-                               data_2=track_spent)
->>>>>>> Stashed changes
     return redirect(url_for('views.home'))
 
 
 ####################################################################
-# ----------------------------STAFF CASES------------------------------
+#----------------------------STAFF CASES------------------------------
 
-@views.route('/staff_manage_flights/<time_range>', methods=['GET', 'POST'])
-def staff_manage_flights(time_range):
+@views.route('/staff_manage_flights/', methods=['GET', 'POST'])
+def staff_manage_flights():
     if session['user'] and session['customerOrStaff'] == 'staff':
         if request.method == "POST":
-            if time_range == '0':
-                if request.method == "POST":
-                    source = request.form.get('source')
-                    destination = request.form.get('destination')
-                    date_ = request.form.get('date')
-                    departOrArrive = request.form.get("departOrArrive")
-                    data = executeSearchQuery(destination, source, date_, departOrArrive)
-                    if not data:
-                        flash("No flights found!", category='error')
-                        return redirect(url_for('views.home'))
-                    # urls = [f'purchase_flight/' + str(flight['flight_number']) for flight in data]
-                    return render_template('staff_manage_flights.html', user=session, flights=data,
-                                           time_range=time_range)
-
             flight_number = request.form.get("flight_number")
             base_price = request.form.get("base_price")
             departure_airport = request.form.get("departure_airport")
@@ -388,9 +353,7 @@ def staff_manage_flights(time_range):
             cursor = conn.cursor()
             query = "INSERT INTO `flights` (`flight_number`, `base_price`, `departure_airport`, `flight_status`, `identification_number`, " \
                     "`arrival_airport`) VALUES (%s, %s, %s, %s, %s, %s)"
-            cursor.execute(query, (
-                int(flight_number), float(base_price), departure_airport, flight_status, int(identification_number),
-                arrival_airport))
+            cursor.execute(query, (int(flight_number), float(base_price), departure_airport, flight_status, int(identification_number), arrival_airport))
             conn.commit()
 
             query = 'INSERT INTO `arrives` (`flight_number`, `name`, `date`, `time`) VALUES (%s, %s, %s, %s)'
@@ -402,48 +365,45 @@ def staff_manage_flights(time_range):
             conn.commit()
             cursor.close()
 
-        print(time_range)
-        if time_range == '30':
-            cursor = conn.cursor()
 
-            query = 'SELECT * FROM flights natural join arrives WHERE flights.identification_number in ' \
-                    '(select identification_number from owns where name=%s);'
-            cursor.execute(query, (session['staff_airline']))
-            flights = cursor.fetchall()
-            data = []
-            added_so_far = []
-            curr_date = date.today()
-            for i in range(len(flights)):
+        # pass all flights of airline staff works for
+        # cursor = conn.cursor()
+        # query = 'SELECT DISTINCT * FROM flights WHERE flights.identification_number in (select identification_number from owns where name=%s);'
+        # cursor.execute(query, (session['staff_airline']))
+        # data = cursor.fetchall()
+        # if not data:
+        #     flash("No flights found!", category='error')
+        #     return redirect(url_for('views.home'))
+
+        cursor = conn.cursor()
+
+        query = 'SELECT * FROM flights natural join arrives WHERE flights.identification_number in ' \
+                '(select identification_number from owns where name=%s);'
+        cursor.execute(query, (session['staff_airline']))
+        flights = cursor.fetchall()
+
+        data = []
+        added_so_far = []
+        curr_date = date.today()
+        for i in range(len(flights)):
+            print(flights[i])
+            if curr_date <= flights[i]['date'] <= curr_date + timedelta(days=30):
+                data.append(flights[i])
+                added_so_far.append(flights[i]['flight_number'])
+
+        query = 'SELECT * FROM flights natural join departs WHERE flights.identification_number in ' \
+                '(select identification_number from owns where name=%s);'
+        cursor.execute(query, (session['staff_airline']))
+        flights = cursor.fetchall()
+        curr_date = date.today()
+        for i in range(len(flights)):
+            if flights[i]['flight_number'] not in added_so_far:
                 if curr_date <= flights[i]['date'] <= curr_date + timedelta(days=30):
                     data.append(flights[i])
                     added_so_far.append(flights[i]['flight_number'])
-
-            query = 'SELECT * FROM flights natural join departs WHERE flights.identification_number in ' \
-                    '(select identification_number from owns where name=%s);'
-            cursor.execute(query, (session['staff_airline']))
-            flights = cursor.fetchall()
-            curr_date = date.today()
-            for i in range(len(flights)):
-                if flights[i]['flight_number'] not in added_so_far:
-                    if curr_date <= flights[i]['date'] <= curr_date + timedelta(days=30):
-                        data.append(flights[i])
-                        added_so_far.append(flights[i]['flight_number'])
-            cursor.close()
-            return render_template('staff_manage_flights.html', user=session, flights=data, time_range=time_range)
-
-        elif time_range == '365':
-            cursor = conn.cursor()
-            query = 'SELECT DISTINCT * FROM flights WHERE flights.identification_number in (select identification_number from owns where name=%s);'
-            cursor.execute(query, (session['staff_airline']))
-            data = cursor.fetchall()
-            if not data:
-                flash("No flights found!", category='error')
-                return redirect(url_for('views.home'))
-
-            return render_template('staff_manage_flights.html', user=session, flights=data, time_range=time_range)
-
-        elif time_range == '0':
-            return render_template('staff_search_flight.html', user=session, data=None)
+        print(added_so_far)
+        cursor.close()
+        return render_template('staff_manage_flights.html', user=session, flights=data)
 
 
 @views.route('/staff_manage_flights/change_flight_status/<flight_number>', methods=['GET', 'POST'])
@@ -472,15 +432,15 @@ def add_new_airplane():
             identification_number = request.form.get("identification_number")
             num_of_seats = request.form.get("number_of_seats")
             manufacturing_company = request.form.get("manufacturing_company")
-            age = request.form.get("age")
+            age =request.form.get("age")
 
             cursor = conn.cursor()
             query = "INSERT INTO `airplanes` VALUES (%s, %s, %s, %s)"
             print((int(identification_number), int(num_of_seats), manufacturing_company, int(age)))
-            cursor.execute(query, (int(identification_number), int(num_of_seats), manufacturing_company, int(age)))
+            cursor.execute(query,(int(identification_number), int(num_of_seats), manufacturing_company, int(age)))
             conn.commit()
 
-            query = "INSERT INTO `owns` VALUES (%s, %s)"
+            query= "INSERT INTO `owns` VALUES (%s, %s)"
             cursor.execute(query, (session["staff_airline"], identification_number))
             conn.commit()
             cursor.close()
@@ -496,6 +456,7 @@ def add_new_airplane():
         return render_template('staff_manage_airplane.html', user=session, airplanes=data)
 
 
+
 @views.route('/staff_manage_airports', methods=['GET', 'POST'])
 def staff_manage_new_airports():
     if session['user'] and session['customerOrStaff'] == 'staff':
@@ -503,6 +464,7 @@ def staff_manage_new_airports():
             name = request.form.get("name")
             city = request.form.get("city")
             airport_type = request.form["airport_type"]
+
 
             cursor = conn.cursor()
             query = "INSERT INTO `airports` VALUES (%s, %s, %s)"
@@ -639,7 +601,6 @@ def view_reports():
 
 
 
-<<<<<<< Updated upstream
 
 @views.route('/staff_view_earned_revenue', methods=['GET'])
 def view_earned_revenue():
@@ -670,8 +631,3 @@ def view_earned_revenue():
                                 data_year = output_str_year_spent
                                 )
     return redirect(url_for('views.home'))
-=======
-@views.route('/view_revenue', methods=['GET', 'POST'])
-def view_revenue():
-    return render_template('home.html', user=session, search=None)
->>>>>>> Stashed changes
