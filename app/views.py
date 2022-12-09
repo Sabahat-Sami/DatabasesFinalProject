@@ -440,11 +440,10 @@ def change_flight_status(flight_number):
 
         cursor = conn.cursor()
         updateStatement = 'UPDATE FLIGHTS SET flight_status = %s WHERE flight_number=%s;'
-        print(updateStatement)
         cursor.execute(updateStatement, (flight_status, flight_number))
         conn.commit()
         cursor.close()
-        return redirect(url_for('views.staff_manage_flights'))
+        return redirect('/staff_manage_flights/30')
     cursor = conn.cursor()
     query = 'SELECT * FROM flights WHERE flight_number=%s'
     cursor.execute(query, flight_number)
@@ -654,3 +653,22 @@ def view_earned_revenue():
                                 data_year = output_str_year_spent
                                 )
     return redirect(url_for('views.home'))
+
+
+@views.route('/staff_manage_flights/flight_display_customers/<flight_number>', methods=['GET', 'POST'])
+def display_flight_customers(flight_number):
+    cursor = conn.cursor()
+    query = 'SELECT * FROM tickets WHERE flight_number=%s'
+    cursor.execute(query, flight_number)
+    data = cursor.fetchall()
+
+    print(data)
+    if not data:
+        flash("No tickets were bought for the flight", category='error')
+        return redirect('/staff_manage_flights/30')
+
+    names = []
+
+    for i in range(len(data)):
+        names.append(data[i]['card_name'])
+    return render_template('display_flight_customers.html', user=session, names=names, flight_number=flight_number)

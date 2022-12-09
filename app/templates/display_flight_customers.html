@@ -1,0 +1,26 @@
+{% extends "base.html" %} {% block title %}<title>Staff Register</title>{% endblock %} {% block content
+    %}
+
+    <h3>Customers for flight: {{ flight_number }}</h3>
+    <ul>
+            {% for name in names %}
+                <li>
+                <p>{{ name }}</p>
+                </li>
+            {% endfor %}
+    </ul>
+
+    <br>
+    <br>
+
+    <a class="nav-item nav-link" id="display_0" href='/staff_manage_flights/{{ 30 }}'>Return to flights</a>
+
+
+
+    <br>
+    <br>
+
+
+
+
+{% endblock %}

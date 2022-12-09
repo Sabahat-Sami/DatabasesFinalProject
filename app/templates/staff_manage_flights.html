@@ -11,7 +11,10 @@
             {% for flight in flights %}
                 <li>
                 <p>{{ flight }}
-                <a href='/staff_manage_flights/change_flight_status/'>Change Status</a>
+                    <br>
+                <a href='/staff_manage_flights/change_flight_status/{{ flight.flight_number }}'>Change Status</a>
+                or
+                <a href='/staff_manage_flights/flight_display_customers/{{ flight.flight_number }}'>Display Customers</a>
                 </p>
                 </li>
             {% endfor %}
@@ -21,11 +24,11 @@
     <br>
 
     {% if time_range == '30' %}
-        <a class="nav-item nav-link" id="home" href='/staff_manage_flights/{{ 365 }}'>Manage All Flights</a>
-        <a class="nav-item nav-link" id="home" href='/staff_manage_flights/{{ 0 }}'>Pick Specific Time</a>
+        <a class="nav-item nav-link" id="display_365" href='/staff_manage_flights/{{ 365 }}'>Manage All Flights</a>
+        <a class="nav-item nav-link" id="display_0" href='/staff_manage_flights/{{ 0 }}'>Pick Specific Time</a>
     {% elif time_range == '365'%}
-        <a class="nav-item nav-link" id="home" href='/staff_manage_flights/{{ 30 }}'>Manage Next 30 Days Flights</a>
-        <a class="nav-item nav-link" id="home" href='/staff_manage_flights/{{ 0 }}'>Pick Specific Time</a>
+        <a class="nav-item nav-link" id="display_30" href='/staff_manage_flights/{{ 30 }}'>Manage Next 30 Days Flights</a>
+        <a class="nav-item nav-link" id="display_0" href='/staff_manage_flights/{{ 0 }}'>Pick Specific Time</a>
     {% endif %}
 
 
@@ -34,7 +37,7 @@
 
 
 <form method="POST" id="registerForm">
-    <input type="text" id="flight_number" name="flight_number" m placeholder="flight number" required/>
+    <input type="text" id="flight_number" name="flight_number" placeholder="flight number" required/>
     </br>
     <input type="text" id="base_price" name="base_price" placeholder="base price" required/>
     </br>
