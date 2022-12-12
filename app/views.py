@@ -543,7 +543,7 @@ def view_frequent_customers():
         if request.method == "POST":
             email = request.form.get('email')
             cursor = conn.cursor()
-            query = 'SELECT * FROM flights WHERE flights.flight_number = (SELECT flights.flight_number FROM flights, tickets WHERE flights.flight_number = tickets.flight_number AND tickets.email = %s AND tickets.airline = (SELECT airline_name FROM staff WHERE %s = username))'
+            query = 'SELECT * FROM flights WHERE flights.flight_number IN (SELECT flights.flight_number FROM flights, tickets WHERE flights.flight_number = tickets.flight_number AND tickets.email = %s AND tickets.airline = (SELECT airline_name FROM staff WHERE %s = username))'
             cursor.execute(query, (email, session['user']))
             flights = cursor.fetchall()
             if not flights:
